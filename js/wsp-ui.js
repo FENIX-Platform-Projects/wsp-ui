@@ -4,7 +4,8 @@ define(['jquery',
         'text!wsp_ui/html/templates.hbs',
         'i18n!wsp_ui/nls/translate',
         'bootstrap',
-        'sweet-alert'], function ($, Handlebars, templates, translate, sweetAlert) {
+        'sweet-alert',
+        'select2'], function ($, Handlebars, templates, translate, sweetAlert) {
 
     'use strict';
 
@@ -46,19 +47,22 @@ define(['jquery',
             boxes.push(
                 {
                     box_title: titles[i - 1],
+                    add_new_line: i % 2 == 0,
                     z_score_label: translate.z_score_label,
                     anomaly_label: translate.anomaly_label,
-                    box_content_id: this.CONFIG.prefix + 'box_content_' + (i - 1),
                     footer_text: translate.copyright_label,
-                    add_new_line: i % 2 == 0
+                    please_select_label: translate.please_select_label,
+                    box_content_id: this.CONFIG.prefix + 'box_content_' + (i - 1)
                 }
             );
         }
         var dynamic_data = {
-            box: boxes
+            box: boxes,
+            wsp_label: translate.wsp_label
         };
         var html = template(dynamic_data);
         $('#' + this.CONFIG.placeholder_id).html(html);
+        $('.select2').select2();
 
     };
 

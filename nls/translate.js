@@ -8,7 +8,9 @@ define({
         rainfall_label: 'Rainfall',
         copyright_label: '© FAO 2015',
         temperature_label: 'Temperature',
-        evapotranspiration_label: 'Evapotranspiration'
+        wsp_label: 'Water Scarcity Platform',
+        evapotranspiration_label: 'Evapotranspiration',
+        please_select_label: 'Please select a layer...'
     },
     fr : true,
     es : true
