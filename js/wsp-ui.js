@@ -45,11 +45,11 @@ define(['jquery',
         for (var i = 1 ; i <= titles.length ; i++) {
             boxes.push(
                 {
-                    box_title: titles[i],
+                    box_title: titles[i - 1],
                     z_score_label: translate.z_score_label,
                     anomaly_label: translate.anomaly_label,
-                    box_content_id: this.CONFIG.prefix + 'box_content_' + i,
-                    footer_text: 'footer_text',
+                    box_content_id: this.CONFIG.prefix + 'box_content_' + (i - 1),
+                    footer_text: translate.copyright_label,
                     add_new_line: i % 2 == 0
                 }
             );
