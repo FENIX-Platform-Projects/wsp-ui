@@ -1,3 +1,14 @@
+.box-title {
+  font-size: 2em; }
 
+.box {
+  padding: 8px;
+  border: 1px solid #666;
+  margin-left: 0 !important;
+  margin-right: 0 !important; }
+
+.wsp-btn {
+  width: 100%;
+  margin-top: 4px; }
 
 /*# sourceMappingURL=wsp-ui.css.map */

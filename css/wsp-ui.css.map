@@ -1,7 +1,7 @@
 {
 "version": 3,
-"mappings": "",
-"sources": [],
+"mappings": "AAAA,UAAW;EACT,SAAS,EAAE,GAAG;;AAGhB,IAAK;EACH,OAAO,EAAE,GAAG;EACZ,MAAM,EAAE,cAAc;EACtB,WAAW,EAAE,YAAY;EACzB,YAAY,EAAE,YAAY;;AAG5B,QAAS;EACP,KAAK,EAAE,IAAI;EACX,UAAU,EAAE,GAAG",
+"sources": ["wsp-ui.scss"],
 "names": [],
 "file": "wsp-ui.css"
 }

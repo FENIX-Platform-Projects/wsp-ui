@@ -30,10 +30,33 @@ define(['jquery',
         /* Fix the language, if needed. */
         this.CONFIG.lang = this.CONFIG.lang !== null ? this.CONFIG.lang : 'en';
 
+        /* Box titles. */
+        var titles = [
+            translate.temperature_label,
+            translate.evapotranspiration_label,
+            translate.ndvi_label,
+            translate.rainfall_label
+        ];
+
         /* Load template. */
         var source = $(templates).filter('#wsp_ui_structure').html();
         var template = Handlebars.compile(source);
-        var dynamic_data = {};
+        var boxes = [];
+        for (var i = 1 ; i <= titles.length ; i++) {
+            boxes.push(
+                {
+                    box_title: titles[i],
+                    z_score_label: translate.z_score_label,
+                    anomaly_label: translate.anomaly_label,
+                    box_content_id: this.CONFIG.prefix + 'box_content_' + i,
+                    footer_text: 'footer_text',
+                    add_new_line: i % 2 == 0
+                }
+            );
+        }
+        var dynamic_data = {
+            box: boxes
+        };
         var html = template(dynamic_data);
         $('#' + this.CONFIG.placeholder_id).html(html);
 

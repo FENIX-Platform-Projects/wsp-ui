@@ -7,25 +7,54 @@
                 </h1>
             </div>
         </div>
-    </div>
-</script>
-
-<script type='text/x-handlebars-template' id='box_structure'>
-    <div class='row'>
-        <div class='col-xs-6'>
-            <h3>
-                My Layer
-            </h3>
-        </div>
-        <div class='col-xs-3'>
-            <button class='btn btn-default pull-right'>
-                Z-Score
-            </button>
-        </div>
-        <div class='col-xs-3'>
-            <button class='btn btn-default pull-right'>
-                Anomaly
-            </button>
+        <hr>
+        <div class='row'>
+            {{#each box}}
+                <div class='col-xs-6'>
+                    <div class='row box' id='{{box_id}}'>
+                        <div data-role='box-header'>
+                            <div class='col-xs-6'>
+                                <div class='box-title'>
+                                    {{{box_title}}}
+                                </div>
+                            </div>
+                            <div class='col-xs-3'>
+                                <button class='btn btn-primary wsp-btn'>
+                                    {{{z_score_label}}}
+                                </button>
+                            </div>
+                            <div class='col-xs-3'>
+                                <button class='btn btn-primary wsp-btn'>
+                                    {{{anomaly_label}}}
+                                </button>
+                            </div>
+                        </div>
+                        <br><br><br>
+                        <div data-role='box-content' id='{{box_content_id}}'>
+                            <div class='row'>
+                                <div class='col-xs-12'>
+                                    Your map here
+                                </div>
+                                <div class='col-xs-12'>
+                                    Your chart here
+                                </div>
+                            </div>
+                        </div>
+                        <br><br><br>
+                        <div data-role='box-footer'>
+                            <div class='pull-right'>
+                                {{{footer_text}}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{#if this.add_new_line}}
+                    </div>
+                    <hr>
+                    <div class='row'>
+                {{/if}}
+            {{/each}}
+            </div>
         </div>
     </div>
 </script>
