@@ -1,0 +1,76 @@
+<script type='text/x-handlebars-template' id='wsp_ui_structure'>
+    <div class='container'>
+        <div class='row'>
+            <div class='col-xs-12'>
+                <h1>
+                    <img src='images/fx-logo.png' style='width: 60px; heigh: 60px;'>
+                    {{wsp_label}}
+                </h1>
+
+            </div>
+        </div>
+        <hr>
+        <div class='row'>
+            {{#each box}}
+                <div class='col-xs-6'>
+                    <div class='row box' id='{{box_id}}'>
+                        <div data-role='box-header'>
+                            <div class='row'>
+                                <div class='col-xs-12'>
+                                    <div class='box-title'>
+                                        {{{box_title}}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <div class='col-xs-6'>
+                                    <select style='width: 100%;' class='select2'>
+                                        <option value=''>{{please_select_label}}</option>
+                                    </select>
+                                </div>
+                                <div class='col-xs-3'>
+                                    <button class='btn btn-primary btn-xs wsp-btn'>
+                                        {{{z_score_label}}}
+                                    </button>
+                                </div>
+                                <div class='col-xs-3'>
+                                    <button class='btn btn-primary btn-xs wsp-btn'>
+                                        {{{anomaly_label}}}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div data-role='box-content' id='{{box_content_id}}'>
+                            <div class='row'>
+                                <div class='col-xs-12'>
+                                    <iframe allowfullscreen=""
+                                            width="535px"
+                                            height="250px"
+                                            frameborder="0" src="http://fenix.fao.org/demo/fenix-ui-map-demo/#join_gaul0">
+
+                                    </iframe>
+                                </div>
+                                <div class='col-xs-12'>
+                                    Your chart here
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div data-role='box-footer'>
+                            <div class='pull-right'>
+                                {{{footer_text}}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{#if this.add_new_line}}
+                    </div>
+                    <hr>
+                    <div class='row'>
+                {{/if}}
+            {{/each}}
+            </div>
+        </div>
+    </div>
+</script>
