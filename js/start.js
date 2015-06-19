@@ -39,14 +39,16 @@ define([
                     coverageSectorCode: 'myd11c3',
                     cachedLayers: [],
                     selectedLayer: null,
-                    baselayerDef: ''
-
+                    zscore: true,
+                    anomalyLayerPrefix: 'eco_myd11c3_anomaly:lst_anomaly_6km_myd11c3',
+                    zscoreLayerPrefix: 'eco_myd11c3_zscore:lst_zscore_6km_myd11c3'
                 },
                 {
                     id: 'et',
                     title: i18n.evapotranspiration_label,
                     coverageSectorCode: 'et',
                     cachedLayers: [],
+                    zscore: true,
                 },
                 //{
                 //    id: 'rainfall',
@@ -57,7 +59,8 @@ define([
                     id: 'mod13a3',
                     title: i18n.ndvi_label,
                     coverageSectorCode: 'mod13a3',
-                    cachedLayers: []
+                    cachedLayers: [],
+                    zscore: false,
                 }
             ],
 
@@ -137,25 +140,57 @@ define([
         for (var i = 0 ; i < this.o.box.length ; i++) {
             this.o.box[i].$box = this.$placeholder.find('#' + this.o.box[i].id);
             this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
-            this.o.box[i].$zscore = this.o.box[i].$box.find('[data-role="zscore"]');
-            this.o.box[i].$anomaly = this.o.box[i].$box.find('[data-role="anomaly"]');
             this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
             this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
+            this.o.box[i].$anomalyBtn = this.o.box[i].$box.find('[data-role="anomaly"]');
+            this.o.box[i].$zscoreBtn = this.o.box[i].$box.find('[data-role="zscore"]');
 
-
+            // init dropdown
             this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
             this.fillDD(this.o.box[i]);
 
+            // init map
             this.o.box[i].m = this.initMap(this.o.box[i].$map);
 
             this.o.box[i].m.map.on('click', function (e) {
-                _this.createChart(this.box, e.latlng.lat, e.latlng.lng)
+                //_this.createChart(this.box, e.latlng.lat, e.latlng.lng);
+                _this.createCharts(e.latlng.lat, e.latlng.lng);
             }, {box: this.o.box[i]});
+
+            // anomaly
+            this.o.box[i].$anomalyBtn.on('click', {box: this.o.box[i]}, function (e) {
+                _this.toggleLayer(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly")
+            })
+
+            this.o.box[i].$zscoreBtn.on('click', {box: this.o.box[i]}, function (e) {
+                _this.toggleLayer(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score")
+            });
         }
 
         // sync maps
         this.syncMaps(this.o.box);
+    };
 
+    WSP.prototype.toggleLayer = function(box, layerType, layerTypePrefix, layerTitle) {
+        var layerName = box.$dd.find(":selected").val(),
+            layer = this.getLayerByLayerName(layerName, box.cachedLayers),
+            date = this.getYearMonthByLayer(layer);
+
+        if (box[layerType] !== null && box[layerType] !== undefined) {
+            box.m.removeLayer(box[layerType]);
+            box[layerType] = null;
+        }else {
+            box[layerType] = new FM.layer({
+                layers: layerTypePrefix + "_" + date + "_3857",
+                layertitle: layerTitle + " " + date,
+                urlWMS: Services.url_geoserver_wms_demo,
+                opacity: '0.9',
+                lang: 'EN',
+                openlegend: true,
+                defaultgfi: true
+            });
+            box.m.addLayer(box[layerType]);
+        }
     };
 
 
@@ -249,11 +284,15 @@ define([
                 console.warn("Couldn't be possible to parse the date", e);
             }
         }
-
-        console.log(layers);
         return layers;
     };
 
+    WSP.prototype.getYearMonthByLayer = function(layer) {
+        console.log(layer);
+        var fromDate = layer.meContent.seCoverage.coverageTime.from,
+            d = new Date(fromDate);
+        return (d.getMonth() > 9)? d.getFullYear().toString() + d.getMonth().toString(): d.getFullYear().toString() + '0' + d.getMonth().toString();
+    };
 
     WSP.prototype.loadLayer = function(m, selectedLayer, workspace, layerName, layerTitle, box) {
 
@@ -285,22 +324,10 @@ define([
         return selectedLayer;
     };
 
-    WSP.prototype.handlePixelSelection = function(box, value) {
-
-        console.log(value);
-        console.log(box);
-
-
-        //var deferred = Q.defer();
-        //http.get(opts, deferred.resolve);
-        //return deferred.promise;
-    };
-
-    WSP.prototype.getPixelSeries = function(layers) {
-        //var deferred = Q.defer();
-        //
-        //http.get(opts, deferred.resolve);
-        //return deferred.promise;
+    WSP.prototype.createCharts = function(lat, lon) {
+        for(var i=0; i < this.o.box.length; i++) {
+            this.createChart(this.o.box[i], lat, lon);
+        }
     };
 
     WSP.prototype.createChart = function(box, lat, lon) {
@@ -309,7 +336,6 @@ define([
 
 
         $chart.empty();
-        //box.chartObj = null;
 
         $chart.highcharts({
             xAxis: {
@@ -322,7 +348,7 @@ define([
         box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
 
 
-        for(var year=2015; year >= 2000; year--) {
+        for(var year=2015; year >= 2010; year--) {
             this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString()).then(function(v) {
                 // check response
                 for(var i=0; i < v.data.length; i++) {

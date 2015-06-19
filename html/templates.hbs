@@ -27,15 +27,17 @@
                                     </select>
                                 </div>
                                 <div class='col-xs-3'>
-                                    <button class='btn btn-primary btn-xs wsp-btn' data-role="zscore">
-                                        {{{z_score_label}}}
-                                    </button>
-                                </div>
-                                <div class='col-xs-3'>
                                     <button class='btn btn-primary btn-xs wsp-btn'data-role="anomaly">
                                         {{{anomaly_label}}}
                                     </button>
                                 </div>
+                                {{#if this.zscore}}
+                                    <div class='col-xs-3'>
+                                        <button class='btn btn-primary btn-xs wsp-btn' data-role="zscore">
+                                            {{{z_score_label}}}
+                                        </button>
+                                    </div>
+                                {{/if}}
                             </div>
                         </div>
                         <hr>
@@ -46,11 +48,9 @@
                                 </div>
                                 <div class='col-xs-12'>
                                     <div data-role="chart"></div>
-                                    Your chart here
                                 </div>
                             </div>
                         </div>
-                        <hr>
                         <div data-role='box-footer'>
                             <div class='pull-right'>
                                 {{{footer_text}}}
