@@ -1,110 +1,426 @@
+/** global console **/
+
 define([
     'jquery',
     'underscore',
     'handlebars',
-    'text!fx-flude-ui/html/structure.hbs',
-    'i18n!fx-flude-ui/nls/translate',
-    'text!fx-flude-ui/config/data.json',
-    'text!fx-flude-ui/config/indicators.json',
+    //'text!fx-wsp-ui/html/structure.hbs',
+    'text!fx-wsp-ui/html/templates.hbs',
+    'i18n!fx-wsp-ui/nls/translate',
     'fx-c-c/start',
+    'fx-wsp-ui/config/Services',
+    'q',
     'fenix-ui-map',
+    'select2',
     'sweetAlert'
 ], function (
     $,
     _,
     Handlebars,
-    structure,
+    templates,
     i18n,
-    data,
-    indicators,
-    ChartCreator
+    ChartCreator,
+    Services,
+    Q
 ) {
     'use strict';
 
-    function FLUDE() {
+    function WSP() {
         this.o = {
+            lang: 'EN',
+            prefix: 'wsp_ui_',
             s: {
-                placeholder: '#content',
-                map: '[data-role="map"]',
-                indicator: '[data-role="indicator"]',
-                year: '[data-role="year"]',
-                incomes: '[data-role="incomes"]',
-                region: '[data-role="region"]',
-                domain: '[data-role="domain"]',
-                chart: '[data-role="chart"]',
+                placeholder: '#content'
             },
-            data: null,
-            cl: {
-                indicators: null,
-                default_indicator: "NFLoss"
+            box: [
+                {
+                    id: 'myd11c3',
+                    title: i18n.temperature_label,
+                    coverageSectorCode: 'myd11c3',
+                    cachedLayers: [],
+                    selectedLayer: null,
+                    baselayerDef: ''
+
+                },
+                {
+                    id: 'et',
+                    title: i18n.evapotranspiration_label,
+                    coverageSectorCode: 'et',
+                    cachedLayers: [],
+                },
+                //{
+                //    id: 'rainfall',
+                //    title: i18n.rainfall_label,
+                //    coverageSectorCode: 'eco_rainfall'
+                //},
+                {
+                    id: 'mod13a3',
+                    title: i18n.ndvi_label,
+                    coverageSectorCode: 'mod13a3',
+                    cachedLayers: []
+                }
+            ],
+
+            // query raster timeserie
+            pixel_query : {
+                "raster": [
+                    //{
+                    //    "workspace": "eco_et",
+                    //    "layerName": "et_6km_mod16a2_200101_3857",
+                    //    "datasource": "geoserver"
+                    // }
+                ],
+                "stats": {
+                    "pixel": {
+                        //"lat": 44.460250,
+                        //"lon": 66.774902
+                    }
+                }
             },
 
-            selectedCountries: []
+            // template of the chart
+            chart_template: {
+                xAxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                },
+                series: []
+            }
         }
     };
 
-    FLUDE.prototype.init = function(config) {
-        $.extend(true, this.o, config);
-        this.o.data = $.parseJSON(data);
-        this.o.cl.indicators = $.parseJSON(indicators);
+    WSP.prototype.init = function(config) {
+        this.o = $.extend(true, {}, this.o, config);
+        //this.o.data = $.parseJSON(data);
+        //this.o.cl.indicators = $.parseJSON(indicators);
         this.$placeholder = $(this.o.s.placeholder);
 
         // render
         this.render(this.o.data);
     };
 
-    FLUDE.prototype.render = function(data) {
+    WSP.prototype.render = function(data) {
+
+        /* Fix the language, if needed. */
+        this.o.lang = this.o.lang !== null ? this.o.lang : 'EN';
 
         /* Load template. */
-        var source = $(structure).html();
-        var template = Handlebars.compile(source);
-        var html = template();
+        var source = $(templates).filter('#wsp_ui_structure').html(),
+            template = Handlebars.compile(source),
+            boxes = [];
+
+        for (var i = 0; i < this.o.box.length; i++) {
+            this.o.box[i] = $.extend(true, {}, this.o.box[i],
+                {
+                    box_title: this.o.box[i].title,
+                    add_new_line: i % 2 == 1,
+                    z_score_label: i18n.z_score_label,
+                    anomaly_label: i18n.anomaly_label,
+                    footer_text: i18n.copyright_label,
+                    please_select_label: i18n.please_select_label,
+
+                    // ids
+                    box_id: this.o.box[i].id
+                }
+            );
+        }
+        var dynamic_data = {
+            box: this.o.box,
+            wsp_label: i18n.wsp_label
+        };
+        var html = template(dynamic_data);
         this.$placeholder.html(html);
+        $('.select2').select2();
 
-        // init chosen
-        this.$indicator = $(this.o.s.indicator).chosen();
-        this.$year = $(this.o.s.year).chosen();
-        this.$incomes = $(this.o.s.incomes).chosen();
-        this.$region = $(this.o.s.region).chosen();
-        this.$domain = $(this.o.s.domain).chosen();
-        this.$chart = $(this.o.s.chart);
 
-        // bind
-        this.$indicator.on('change', _.bind(function() {this.updateJoinLayer(false);}, this));
-        this.$year.on('change', _.bind(function() {this.updateJoinLayer(false);}, this));
-        this.$incomes.on('change', _.bind(function() {this.updateJoinLayer(true);}, this));
-        this.$region.on('change', _.bind(function() {this.updateJoinLayer(true);}, this));
-        this.$domain.on('change', _.bind(function() {this.updateJoinLayer(true);}, this));
 
-        // initDropDown
-        this.initDropDown(this.$indicator, this.o.cl.indicators, this.o.cl.default_indicator)
+        var _this = this;
+        for (var i = 0 ; i < this.o.box.length ; i++) {
+            this.o.box[i].$box = this.$placeholder.find('#' + this.o.box[i].id);
+            this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
+            this.o.box[i].$zscore = this.o.box[i].$box.find('[data-role="zscore"]');
+            this.o.box[i].$anomaly = this.o.box[i].$box.find('[data-role="anomaly"]');
+            this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
+            this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
 
-        // init map
-        this.initMap(this.o.s.map);
 
-        // update join layer
-        this.updateJoinLayer();
+            this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
+            this.fillDD(this.o.box[i]);
+
+            this.o.box[i].m = this.initMap(this.o.box[i].$map);
+
+            this.o.box[i].m.map.on('click', function (e) {
+                _this.createChart(this.box, e.latlng.lat, e.latlng.lng)
+            }, {box: this.o.box[i]});
+        }
+
+        // sync maps
+        this.syncMaps(this.o.box);
+
     };
 
-    FLUDE.prototype.initDropDown = function($c, data, default_code) {
-        var html = ""
-        data.forEach(function(d) {
-            html += "<option value='" + d.code + "'";
-            if (default_code == d.code) {
-                html += 'selected="selected"'
+
+    WSP.prototype.fillDD = function(box) {
+        var coverageSectorCode = box.coverageSectorCode,
+            $dd = box.$dd;
+
+
+        var request_filter = {
+            "meContent.resourceRepresentationType" : {
+                "enumeration" : ["geographic"]
+            },
+            "meContent.seCoverage.coverageSectors" : {
+                "codes" : [
+                    {
+                        "uid" : "layers_products",
+                        "version" : "1.0",
+                        "codes": [box.coverageSectorCode]
+                    }
+                ]
             }
-            html += ">" + d.label + "</option>"
+        }
+
+        var url = Services.url_d3s_resources_find + "?" + Services.url_d3s_resources_find_order_by_date_parameters;
+
+        var _this = this;
+        $.ajax({
+            type: 'POST',
+            url: url,
+            contentType: "application/json",
+            dataType: 'json',
+            data: JSON.stringify(request_filter),
+            crossDomain: true,
+            success : function(response) {
+                // TODO build dropdown or display:none
+                var html = '';
+                for (var i=0; i < response.length; i++) {
+                    //var selected = ( i == 0 )? "selected='selected'": "";
+                    html += "<option value='" + response[i].dsd.layerName + "'>" + response[i].title[_this.o.lang] + "</option>";
+                }
+                box.cachedLayers = response;
+                $dd.append(html);
+
+                // load layer
+                $dd.change({box: box}, function(e) {
+                    _this.onDDSelection(e.data.box, $(this).find(":selected").val());
+                });
+
+                //console.log($dd.select2().select2('val', $('.select2 option:eq(0)').val()));
+                $dd.select2().select2('val', $dd.find('option:eq(0)').val(), true);
+            },
+            error : function(err, b, c) {
+                console.log("ERROR D3s");
+            }
         });
-        $c.html(html);
-        $c.trigger("chosen:updated");
+
     };
 
-    FLUDE.prototype.initMap = function(c) {
-        var layers = 'fenix:gaul0_faostat_3857',
-            joinColumn = 'iso3',
-            joinLabel = 'faost_n';
+    WSP.prototype.onDDSelection = function(box, layerName) {
+        var m = box.m,
+            cachedLayers = box.cachedLayers,
+            selectedLayer = box.selectedLayer,
+            l = this.getLayerByLayerName(layerName, cachedLayers);
 
-        this.o.m = new FM.Map(c, {
+        box.selectedLayer = this.loadLayer(m, selectedLayer, l.dsd.workspace, l.dsd.layerName, l.title[this.o.lang], box);
+    };
+
+    WSP.prototype.getLayerByLayerName = function(layerName, cachedLayers) {
+        for(var i=0; i < cachedLayers.length; i++) {
+            if (cachedLayers[i].dsd.layerName == layerName) {
+                return cachedLayers[i];
+            }
+        }
+    };
+
+    WSP.prototype.getLayersByYear = function(cachedLayers, year) {
+        var layers = [];
+        for (var i = 0; i < 12; i++) {
+            layers.push(null);
+        }
+        for (var i=0; i < cachedLayers.length; i++) {
+            try {
+                var fromDate = cachedLayers[i].meContent.seCoverage.coverageTime.from;
+                var d = new Date(fromDate);
+                if (d.getFullYear() == year) {
+                    console.log(d.getMonth());
+                    layers[d.getMonth()] = cachedLayers[i]
+                }
+            }
+            catch (e) {
+                console.warn("Couldn't be possible to parse the date", e);
+            }
+        }
+
+        console.log(layers);
+        return layers;
+    };
+
+
+    WSP.prototype.loadLayer = function(m, selectedLayer, workspace, layerName, layerTitle, box) {
+
+        // remove selected layer
+        if (selectedLayer !== null && selectedLayer !== undefined) {
+            m.removeLayer(selectedLayer);
+        }
+
+        // create layer
+        selectedLayer = new FM.layer({
+            layers: workspace + ":" + layerName,
+            layertitle: layerTitle,
+            urlWMS: Services.url_geoserver_wms_demo,
+            opacity: '0.9',
+            lang: 'EN',
+            openlegend: true,
+            defaultgfi: true,
+            /*                customgfi: {
+             content: {
+             EN: "{{GRAY_INDEX}}"
+             },
+             showpopup: true,
+             callback: _.bind(this.handlePixelSelection, this, box)
+             }*/
+        });
+
+        m.addLayer(selectedLayer);
+
+        return selectedLayer;
+    };
+
+    WSP.prototype.handlePixelSelection = function(box, value) {
+
+        console.log(value);
+        console.log(box);
+
+
+        //var deferred = Q.defer();
+        //http.get(opts, deferred.resolve);
+        //return deferred.promise;
+    };
+
+    WSP.prototype.getPixelSeries = function(layers) {
+        //var deferred = Q.defer();
+        //
+        //http.get(opts, deferred.resolve);
+        //return deferred.promise;
+    };
+
+    WSP.prototype.createChart = function(box, lat, lon) {
+        var cachedLayers = box.cachedLayers,
+            $chart = box.$chart;
+
+
+        $chart.empty();
+        //box.chartObj = null;
+
+        $chart.highcharts({
+            xAxis: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            },
+            series: []
+        });
+
+        var index= $chart.data('highchartsChart');
+        box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
+
+
+        for(var year=2015; year >= 2000; year--) {
+            this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString()).then(function(v) {
+                // check response
+                for(var i=0; i < v.data.length; i++) {
+                    if (v.data[i] != null) {
+                        box.chartObj.addSeries(v);
+                        break;
+                    }
+                }
+            });
+        }
+
+        //var membersList = this.getDataTest();
+
+        //membersList.then(function (res) {
+        //    console.log(res);
+        //    console.log("here");
+        //}).then();
+
+
+
+        /*        this.getDataTest().then(function(c) {
+         console.log("done");
+         console.log(c);
+         }).then(
+         this.getDataTest().then(function(c) {
+         console.log("done");
+         console.log(c)
+         })
+         )*/
+
+    };
+
+    WSP.prototype.addSerieToChart = function(chartObj, serie) {
+        for(var i=0; i< chartObj.series.length; i++) {
+            if ( chartObj.series[i].name == serie.name) {
+                console.log(chartObj.series[i].name);
+                chartObj.series[i].data = serie.data;
+                console.log(serie.data);
+                console.log(chartObj.series[i]);
+                break;
+            }
+        }
+        chartObj.redraw();
+    };
+
+    WSP.prototype.getDataTest = function() {
+        var deferred = Q.defer();
+        $.get("http://faostat3.fao.org/wds/rest/procedures/usp_GetListBox/faostatdb/MK/4/1/E").done(function (result) {
+            deferred.resolve(result);
+        });
+        return deferred.promise;
+    };
+
+    WSP.prototype.getChartData = function(layers, lat, lon, serieName) {
+        var deferred = Q.defer();
+
+        var data = $.extend(true, {}, this.o.pixel_query);
+        for(var i=0; i < layers.length; i++) {
+
+            var layer = null;
+            if (layers[i] != null) {
+                layer = { workspace: layers[i].dsd.workspace, layerName: layers[i].dsd.layerName, datasource: "geoserver"}
+            }
+            else {
+                layer = { workspace: "", layerName: "", datasource: "geoserver"}
+            }
+            data.raster.push(layer);
+        }
+
+        data.stats.pixel = {
+            lat: lat,
+            lon: lon
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: Services.url_geostatistics_rasters_pixel,
+            contentType: "application/json",
+            dataType: 'json',
+            data: JSON.stringify(data),
+            crossDomain: true,
+            success : function(response) {
+                var d = {
+                    name: serieName,
+                    data: response
+                }
+                deferred.resolve(d);
+            },
+            error : function(err, b, c) {}
+        });
+
+        return deferred.promise;
+    };
+
+
+
+    WSP.prototype.initMap = function(c) {
+        var m = new FM.Map(c, {
             plugins: {
                 zoomcontrol: 'bottomright',
                 disclaimerfao: true,
@@ -120,274 +436,40 @@ define([
                 wmsLoader: true
             }
         });
-        this.o.m.createMap();
+        m.createMap();
 
-        this.o.joinlayer = new FM.layer({
-            layers: layers,
-            layertitle: i18n.indicator,
-            opacity: '0.7',
-            joincolumn: joinColumn,
-            joincolumnlabel: joinLabel,
-            joindata: [],
-            mu: "",
-            legendsubtitle: "",
-            layertype: 'JOIN',
-            jointype: 'shaded',
-            openlegend: true,
-            defaultgfi: true,
-            colorramp: 'Greens',
-            intervals: 7,
-            lang: 'en',
-            customgfi: {
-                /*                content: {
-                 en: "<div class='fm-popup'>{{"+ joinLabel +"}} <div class='fm-popup-join-content'>{{{"+ joinColumn +"}}}</div></div>"
-                 },*/
-                content: {
-                    en: "{{"+ joinColumn +"}}"
-                },
-                showpopup: false,
-                callback: _.bind(this.handleCountrySelection, this)
-            }
-        });
-        // this.o.map.addLayer(this.o.joinlayer);
-
-        this.o.m.addLayer(new FM.layer({
+        m.addLayer(new FM.layer({
             layers: 'fenix:gaul0_line_3857',
-            layertitle: 'Country Boundaries',
-            urlWMS: 'http://fenix.fao.org/geoserver',
+            layertitle: i18n.country_coundaries,
+            urlWMS: Services.url_geoserver_wms,
             opacity: '0.9',
             zindex: '500',
             lang: 'en'
         }));
 
-        this.o.l_highlight_countries = new FM.layer({
-            layers: layers,
-            layertitle: '',
-            urlWMS: 'http://fenix.fao.org/geoserver',
-            zindex: '550',
-            style: 'highlight_polygon',
-            cql_filter: "iso3 IN ('0')",
-            hideLayerInControllerList: true,
-            lang: 'en'
-        });
-        this.o.m.addLayer(this.o.l_highlight_countries);
+
+        // On Move
+        var _m = m;
+        var _this = this
+        var GFIchk = {};
+        GFIchk["lat-" + m.id] = 0;
+        GFIchk["lng-" + m.id] = 0;
+        GFIchk["globalID-" + m.id] = 0;
+
+        return m;
     };
 
-    FLUDE.prototype.resetCountries = function() {
-        this.o.selectedCountries = [];
-        this.highlightCountries(this.o.selectedCountries);
-
-        // create chart
-        this.$chart.empty();
-
-        this.o.m.map.setView([0,0], 1);
-    };
-
-    FLUDE.prototype.handleCountryDropDownSelection = function(codes) {
-
-        this.o.selectedCountries = [];
-
-        _.each(codes, function(code) {
-            this.o.selectedCountries.push(code);
-        }, this);
-
-        // highlight countries
-        this.highlightCountries(this.o.selectedCountries);
-
-        // create chart
-        this.createChart();
-    },
-
-    FLUDE.prototype.handleCountrySelection = function(code) {
-
-        // check if the code already in the selectedCountries
-        if (code !== null && code != undefined) {
-            if (_.indexOf(this.o.selectedCountries, code) > -1) {
-                this.o.selectedCountries = _.without(this.o.selectedCountries, code);
-            }
-            else {
-                this.o.selectedCountries.push(code);
-            }
-            this.o.selectedCountries = _.uniq(this.o.selectedCountries);
-
-            //console.log(this.o.selectedCountries);
-            this.highlightCountries(this.o.selectedCountries);
-
-            // create chart
-            this.createChart();
-        }
-    };
-
-    FLUDE.prototype.createChart = function() {
-        // create chart
-        var chartData = this.filterChartData();
-        var creator = new ChartCreator();
-
-        creator.init({
-            model: chartData,
-            adapter: {
-                filters: ['Country'],
-                x_dimension: 'Year'
-            },
-            template: {},
-            creator: {},
-            onReady: _.bind(this.renderChart, this)
-        });
-    };
-
-    FLUDE.prototype.renderChart = function(creator) {
-        var countries = this.o.selectedCountries,
-            indicator = this.$indicator.val(),
-            series = [];
-
-        _.each(countries, function(country) {
-            series.push({
-                filters: {
-                    'Country': country,
-                },
-                value: indicator,
-                name: country
-            });
-        });
-
-        creator.render({
-            container: this.o.s.chart,
-            template: {
-                title: "Timeseries of " + this.$indicator.find("option:selected").text() +" by country (1990-2015)"
-
-            },
-            creator: {
-                chartObj: {
-                    chart: {
-                        type: 'column'
+    WSP.prototype.syncMaps = function(maps) {
+        for (var i = 0 ; i < maps.length ; i++) {
+            for (var j = 0 ; j < maps.length ; j++) {
+                if (i !== j) {
+                    if (maps[i].m !== null && maps[i].m !== undefined && maps[j].m !== null && maps[j].m !== undefined) {
+                        maps[i].m.syncOnMove(maps[j].m);
                     }
                 }
-            },
-            adapter: {
-                series: series
-            }
-        });
-    };
-
-    FLUDE.prototype.highlightCountries = function(countryCodes) {
-
-        if ( countryCodes.length > 0) {
-            var codes = "'" + countryCodes.join("','") + "'";
-            this.o.l_highlight_countries.layer.cql_filter = "iso3 IN (" + codes + ")";
-            //this.zoomTo(countryCodes);
-        }
-        else {
-            this.o.l_highlight_countries.layer.cql_filter = "iso3 IN ('0')";
-        }
-
-        this.o.l_highlight_countries.redraw();
-    };
-
-    FLUDE.prototype.filterData = function() {
-        var year = parseInt(this.$year.val()),
-            incomes = this.$incomes.val(),
-            region = this.$region.val(),
-            domain = this.$domain.val(),
-            filters = {};
-
-        filters.Year = year;
-        if (incomes != "") filters.Incomes = incomes;
-        if (domain != "") filters.Domain = domain;
-        //if (region != "") filters.Region = region;
-
-        //console.log(filters);
-
-        return  _.where(this.o.data, filters);
-    };
-
-    FLUDE.prototype.filterChartData = function() {
-        var incomes = this.$incomes.val(),
-            region = this.$region.val(),
-            domain = this.$domain.val(),
-            countries = this.o.selectedCountries,
-            filters = {};
-
-        if (incomes != "") filters.Incomes = incomes;
-        if (domain != "") filters.Domain = domain;
-
-        var data = [];
-        _.each(countries, function(countryCode) {
-            filters.Country = countryCode;
-            _.each(_.where(this.o.data, filters), function(d) {
-                data.push(d);
-            });
-        }, this);
-
-        return data;
-    };
-
-    FLUDE.prototype.updateJoinLayer = function(resetCountries) {
-        var indicator = this.$indicator.val(),
-            data = this.filterData();
-        // remove cached layer
-
-        //console.log(indicator);
-        //console.log(data);
-        this.o.m.removeLayer(this.o.joinlayer);
-
-        // clean joindata array
-        this.o.joinlayer.layer.joindata = [];
-
-        var codes = []
-        data.forEach(_.bind(function(d) {
-            if (d[indicator] != null && d[indicator] != 0) {
-                var p = {};
-                p[d['Country']] = d[indicator];
-                codes.push(d['Country']);
-                this.o.joinlayer.layer.joindata.push(p);
-            }
-        }, this));
-
-        if (this.o.joinlayer.layer.joindata.length > 0) {
-            this.o.joinlayer = new FM.layer(this.o.joinlayer.layer);
-            this.o.m.addLayer(this.o.joinlayer);
-            // TODO: add check for maximum number of codes?
-
-
-            console.log(codes);
-
-            // handle dropdown selection
-            if (codes.length < 200) {
-                this.zoomTo(codes);
-                this.handleCountryDropDownSelection(codes);
-            }
-            else {
-                //this.resetCountries();
-
-                // if there are still selected countries refresh the chart
-                if (this.o.selectedCountries.length > 0 && resetCountries !== true) {
-                    this.createChart();
-                }
-                else {
-                    // reset the countries
-                    this.resetCountries();
-                }
             }
         }
-        else {
-            // reset values
-            this.resetCountries();
-
-            swal({title: i18n.error, type: 'error', text: i18n.data_not_available_current_selection});
-        }
     };
 
-    FLUDE.prototype.chartIndicator = function(codes) {
-
-    };
-
-    FLUDE.prototype.zoomTo = function(codes) {
-        this.o.m.zoomTo("country", "iso3", codes);
-    };
-
-    FLUDE.prototype.getMapData = function(data, indicator) {
-
-    };
-
-    return FLUDE;
+    return WSP;
 });

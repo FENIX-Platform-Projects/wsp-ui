@@ -1,8 +1,16 @@
 define({
     root : {
-        error: "Error",
-        indicator: "Indicator",
-        data_not_available_current_selection: "The data are not available for the current selection"
+        ndvi_label: 'NDVI',
+        error: 'WSP UI Error',
+        z_score_label: 'Z-Score',
+        anomaly_label: 'Anomaly',
+        rainfall_label: 'Rainfall',
+        copyright_label: '© FAO 2015',
+        temperature_label: 'Temperature',
+        wsp_label: 'Water Scarcity Platform',
+        evapotranspiration_label: 'Evapotranspiration',
+        please_select_label: 'Please select a layer...',
+        country_coundaries: 'Country Boundaries'
     },
     fr : true,
     es : true

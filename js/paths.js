@@ -37,14 +37,15 @@ define(function() {
                 'jquery-ui':   FENIX_CDN + '/js/jquery-ui/1.10.3/jquery-ui-1.10.3.custom.min',
                 'jquery.i18n.properties': FENIX_CDN + '/js/jquery/1.0.9/jquery.i18n.properties-min',
                 'jquery.hoverIntent': FENIX_CDN + '/js/jquery.hoverIntent/1.8.0/jquery.hoverIntent.min',
+                'select2': FENIX_CDN + '/js/select2/3.5.2/js/select2.min',
 
                 'fenix-ui-map': FENIX_CDN + '/js/fenix-ui-map/0.1/fenix-ui-map.min',
                 'fenix-ui-map-config': FENIX_CDN + '/js/fenix-ui-map/0.1/fenix-ui-map-config',
 
-                'fx-flude-ui/start' : './start',
-                'fx-flude-ui/html' : '../html',
-                'fx-flude-ui/config' : '../config',
-                'fx-flude-ui/nls': '../nls',
+                'fx-wsp-ui/start' : './start',
+                'fx-wsp-ui/html' : '../html',
+                'fx-wsp-ui/config' : '../config',
+                'fx-wsp-ui/nls': '../nls',
 
                 // Chart Creator
                 'fx-c-c/start' : SUBMODULES_CHARTS + 'start',
@@ -87,6 +88,7 @@ define(function() {
                 'jquery.power.tip': ['jquery'],
                 'jquery.i18n.properties': ['jquery'],
                 'jquery.hoverIntent': ['jquery'],
+                'select2': ['jquery'],
                 'fenix-ui-map': {
                     deps: [
                         'jquery',
