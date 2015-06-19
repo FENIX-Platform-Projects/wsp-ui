@@ -3,6 +3,7 @@ define(['jquery',
         'handlebars',
         'text!wsp_ui/html/templates.hbs',
         'i18n!wsp_ui/nls/translate',
+        'i18n!wsp_ui/nls/translate',
         'bootstrap',
         'sweet-alert',
         'select2'], function ($, Handlebars, templates, translate, sweetAlert) {
