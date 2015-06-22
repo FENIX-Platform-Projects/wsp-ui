@@ -38,6 +38,7 @@ define(function() {
                 'jquery.i18n.properties': FENIX_CDN + '/js/jquery/1.0.9/jquery.i18n.properties-min',
                 'jquery.hoverIntent': FENIX_CDN + '/js/jquery.hoverIntent/1.8.0/jquery.hoverIntent.min',
                 'select2': FENIX_CDN + '/js/select2/3.5.2/js/select2.min',
+                'bootstrap-toggle': 'https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min',
 
                 'fenix-ui-map': FENIX_CDN + '/js/fenix-ui-map/0.0.1-fullscreen-fixed/fenix-ui-map.min',
                 'fenix-ui-map-config': FENIX_CDN + '/js/fenix-ui-map/0.0.1-fullscreen-fixed/fenix-ui-map-config',
@@ -72,6 +73,7 @@ define(function() {
             // so we need to use the AMD wrapping of RequireJS
             shim: {
                 bootstrap: ["jquery"],
+                'bootstrap-toggle': ["bootstrap"],
                 highcharts: ['jquery'],
                 chosen: ['jquery'],
                 amplify: ['jquery'],

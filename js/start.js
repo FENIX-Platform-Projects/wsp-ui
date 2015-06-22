@@ -13,7 +13,8 @@ define([
     'fx-wsp-ui/config/highcharts_template',
     'fenix-ui-map',
     'select2',
-    'sweetAlert'
+    'sweetAlert',
+    'bootstrap-toggle'
 ], function (
     $,
     _,
@@ -62,11 +63,19 @@ define([
                         layerName: 'et_average_6km_mod16a2'
                     }
                 },
-                //{
-                //    id: 'rainfall',
-                //    title: i18n.rainfall_label,
-                //    coverageSectorCode: 'eco_rainfall'
-                //},
+                {
+                    id: 'chirps',
+                    title: i18n.chirps,
+                    coverageSectorCode: 'chirps',
+                    cachedLayers: [],
+                    zscore: true,
+                    anomalyLayerPrefix: 'chirps_anomaly:rainfall_anomaly_6km_chirps',
+                    zscoreLayerPrefix: 'chirps_zscore:rainfall_zscore_6km_chirps',
+                    averageLayerPrefix: {
+                        workspace: 'chirps_avg',
+                        layerName: 'rainfall_average_6km_chirps'
+                    }
+                },
                 {
                     id: 'mod13a3',
                     title: i18n.ndvi_label,
@@ -81,9 +90,29 @@ define([
                 }
             ],
 
+            // Global layers to load for each map
             layers: {
-                wheatLayer: 'earthstat:wheat_area_3857'
-
+                wheat: {
+                    workspace: 'earthstat',
+                    layerName: 'wheat_area_3857',
+                    style: 'Wheat_SAGE_harvested_area'
+                },
+                population_landscan: {
+                    workspace: 'wsp',
+                    layerName: 'population_1km_landscan_2012_3857'
+                },
+                rainfed_land_gaez: {
+                    workspace: 'wsp',
+                    layerName: 'rainfed_land_10km_gaez_2010_3857'
+                },
+                irrigated_areas_solaw_2012: {
+                    workspace: 'wsp',
+                    layerName: 'irrigated_areas_10km_solaw_2012_3857'
+                },
+                cultivated_land_gaez_2010: {
+                    workspace: 'wsp',
+                    layerName: 'cultivated_land_10km_gaez_2010_3857'
+                }
             },
 
             // query raster timeserie
@@ -152,12 +181,14 @@ define([
             box: this.o.box,
             wsp: i18n.wsp,
             wheat: i18n.wheat,
-            population: i18n.population
+            population_landscan: i18n.population_landscan,
+            rainfed_land_gaez:  i18n.rainfed_land_gaez,
+            irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
+            cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010
         };
         var html = template(dynamic_data);
         this.$placeholder.html(html);
         $('.select2').select2();
-
 
 
         var _this = this;
@@ -194,16 +225,17 @@ define([
         // sync maps
         this.syncMaps(this.o.box);
 
-        // wheat and population toggle layers
-        this.o.$wheatBtn = this.$placeholder.find('[data-role="wheat"]');
-        this.o.$wheatBtn.on('click', {box: this.o.box, layers: this.o.layers}, function (e) {
-            var box = e.data.box,
-                layers = e.data.layers;
+        // Global layers (Toggle conditions)
+        Object.keys(this.o.layers).forEach(_.bind(function(key) {
+            this.$placeholder.find('[data-role="'+ key +'"]').on('click', {box: this.o.box, layers: this.o.layers[key]}, function (e) {
+                var box = e.data.box,
+                    layers = e.data.layers;
 
-            for (var i=0; i< box.length; i++) {
-                _this.toggleLayer(box[i], 'wheatLayer', layers.wheatLayer, i18n.wheat);
-            }
-        });
+                for (var i=0; i< box.length; i++) {
+                    _this.toggleLayer(box[i], key, layers, i18n[key]);
+                }
+            });
+        }, this));
     };
 
     WSP.prototype.toggleLayerDate = function(box, layerType, layerTypePrefix, layerTitle) {
@@ -228,21 +260,26 @@ define([
         }
     };
 
-
     WSP.prototype.toggleLayer = function(box, layerType, layer, layerTitle) {
         if (box[layerType] !== null && box[layerType] !== undefined) {
             box.m.removeLayer(box[layerType]);
             box[layerType] = null;
         }else {
-            box[layerType] = new FM.layer({
-                layers: layer,
+            var l = {
+                layers: layer.workspace + ":" + layer.layerName,
                 layertitle: layerTitle,
                 urlWMS: Services.url_geoserver_wms_demo,
-                opacity: '0.9',
+                opacity:(layer.opacity !== null && layer.opacity !== undefined)? layer.opacity: '0.9',
                 lang: 'EN',
                 //openlegend: true,
                 //defaultgfi: true
-            });
+            };
+
+            if (layer.style !== null && layer.style !== undefined) {
+                l.style = layer.style;
+            }
+
+            box[layerType] = new FM.layer(l);
             box.m.addLayer(box[layerType]);
         }
     };
@@ -386,16 +423,11 @@ define([
         var cachedLayers = box.cachedLayers,
             $chart = box.$chart;
 
-
         $chart.empty();
+        $chart.html('<i class="fa fa-spinner fa-spin"></i><span> Loading Chart...</span>');
 
-        var c = {
-            xAxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            },
-            series: []
-        };
-        var c = $.extend(true, {}, HighchartsTemplate, c);
+        // chart template
+        var c = $.extend(true, {}, this.o.chart_template, HighchartsTemplate);
 
         $chart.highcharts(c);
 
@@ -429,6 +461,15 @@ define([
         this.getChartData(avgLayers, lat, lon, 'AVG').then(function(v) {
             for(var i=0; i < v.data.length; i++) {
                 if (v.data[i] != null) {
+                    v.dashStyle = 'longdash';
+                    v.dashStyle = 'shortdot';
+                    v.color = 'red';
+                    v.lineWidth = 4;
+                    v.states = {
+                        hover: {
+                            lineWidth: 4
+                        }
+                    };
                     box.chartObj.addSeries(v);
                     break;
                 }
