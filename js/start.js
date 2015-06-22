@@ -33,7 +33,12 @@ define([
             lang: 'EN',
             prefix: 'wsp_ui_',
             s: {
-                placeholder: '#content'
+                placeholder: '#content',
+                tool: "#wsp-tool",
+                landing: "#wsp-landing"
+            },
+            landing: {
+
             },
             box: [
                 {
@@ -95,23 +100,28 @@ define([
                 wheat: {
                     workspace: 'earthstat',
                     layerName: 'wheat_area_3857',
-                    style: 'Wheat_SAGE_harvested_area'
+                    style: 'Wheat_SAGE_harvested_area',
+                    enabled: false
                 },
                 population_landscan: {
                     workspace: 'wsp',
-                    layerName: 'population_1km_landscan_2012_3857'
+                    layerName: 'population_1km_landscan_2012_3857',
+                    enabled: false
                 },
                 rainfed_land_gaez: {
                     workspace: 'wsp',
-                    layerName: 'rainfed_land_10km_gaez_2010_3857'
+                    layerName: 'rainfed_land_10km_gaez_2010_3857',
+                    enabled: false
                 },
                 irrigated_areas_solaw_2012: {
                     workspace: 'wsp',
-                    layerName: 'irrigated_areas_10km_solaw_2012_3857'
+                    layerName: 'irrigated_areas_10km_solaw_2012_3857',
+                    enabled: false
                 },
                 cultivated_land_gaez_2010: {
                     workspace: 'wsp',
-                    layerName: 'cultivated_land_10km_gaez_2010_3857'
+                    layerName: 'cultivated_land_10km_gaez_2010_3857',
+                    enabled: false
                 }
             },
 
@@ -190,10 +200,37 @@ define([
         this.$placeholder.html(html);
         $('.select2').select2();
 
+        this.$tool =  this.$placeholder.find(this.o.s.tool);
+        this.$landing =  this.$placeholder.find(this.o.s.landing);
 
+        // render landing and tool
+        this.renderLanding();
+        this.renderTool();
+    };
+
+    WSP.prototype.renderLanding = function(c) {
+        this.o.landing.m = this.initMap(this.$landing.find('[data-role="map"]'));
+
+        this.toggleLayer(this.o.landing, 'wheat', this.o.layers.wheat, i18n.wheat, true, true);
+
+        // Global layers (Toggle conditions)
+        Object.keys(this.o.layers).forEach(_.bind(function(key) {
+            var _this = this;
+            this.$landing.find('[data-role="'+ key +'"]').on('click', {box: this.o.landing, layers: this.o.layers[key]}, function (e) {
+                var box = e.data.box,
+                    layers = e.data.layers;
+                _this.toggleLayer(box, key, layers, i18n[key], true, true);
+            });
+        }, this));
+
+        this.o.landing.m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
+    };
+
+
+    WSP.prototype.renderTool = function() {
         var _this = this;
         for (var i = 0 ; i < this.o.box.length ; i++) {
-            this.o.box[i].$box = this.$placeholder.find('#' + this.o.box[i].id);
+            this.o.box[i].$box = this.$tool.find('#' + this.o.box[i].id);
             this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
             this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
             this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
@@ -227,7 +264,7 @@ define([
 
         // Global layers (Toggle conditions)
         Object.keys(this.o.layers).forEach(_.bind(function(key) {
-            this.$placeholder.find('[data-role="'+ key +'"]').on('click', {box: this.o.box, layers: this.o.layers[key]}, function (e) {
+            this.$tool.find('[data-role="'+ key +'"]').on('click', {box: this.o.box, layers: this.o.layers[key]}, function (e) {
                 var box = e.data.box,
                     layers = e.data.layers;
 
@@ -237,6 +274,7 @@ define([
             });
         }, this));
     };
+
 
     WSP.prototype.toggleLayerDate = function(box, layerType, layerTypePrefix, layerTitle) {
         var layerName = box.$dd.find(":selected").val(),
@@ -260,7 +298,7 @@ define([
         }
     };
 
-    WSP.prototype.toggleLayer = function(box, layerType, layer, layerTitle) {
+    WSP.prototype.toggleLayer = function(box, layerType, layer, layerTitle, openlegend, defaultgfi) {
         if (box[layerType] !== null && box[layerType] !== undefined) {
             box.m.removeLayer(box[layerType]);
             box[layerType] = null;
@@ -271,8 +309,8 @@ define([
                 urlWMS: Services.url_geoserver_wms_demo,
                 opacity:(layer.opacity !== null && layer.opacity !== undefined)? layer.opacity: '0.9',
                 lang: 'EN',
-                //openlegend: true,
-                //defaultgfi: true
+                openlegend: (openlegend !== null && openlegend !== undefined)? openlegend: false,
+                defaultgfi: (defaultgfi !== null && defaultgfi !== undefined)? defaultgfi: false
             };
 
             if (layer.style !== null && layer.style !== undefined) {
@@ -563,7 +601,7 @@ define([
 
 
 
-    WSP.prototype.initMap = function(c) {
+    WSP.prototype.initMap = function(c, fullscreenID) {
 /*
     TODO: new map is not working in fullscreen mode
     var m = new FM.Map(c, {
@@ -610,7 +648,8 @@ define([
             urlWMS: Services.url_geoserver_wms,
             opacity: '0.9',
             zindex: '500',
-            lang: 'en'
+            lang: 'en',
+            hideLayerInControllerList: true
         }));
 
 
