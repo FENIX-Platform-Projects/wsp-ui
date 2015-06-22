@@ -10,6 +10,7 @@ define([
     'fx-c-c/start',
     'fx-wsp-ui/config/Services',
     'q',
+    'fx-wsp-ui/config/highcharts_template',
     'fenix-ui-map',
     'select2',
     'sweetAlert'
@@ -21,7 +22,8 @@ define([
     i18n,
     ChartCreator,
     Services,
-    Q
+    Q,
+    HighchartsTemplate
 ) {
     'use strict';
 
@@ -41,7 +43,11 @@ define([
                     selectedLayer: null,
                     zscore: true,
                     anomalyLayerPrefix: 'eco_myd11c3_anomaly:lst_anomaly_6km_myd11c3',
-                    zscoreLayerPrefix: 'eco_myd11c3_zscore:lst_zscore_6km_myd11c3'
+                    zscoreLayerPrefix: 'eco_myd11c3_zscore:lst_zscore_6km_myd11c3',
+                    averageLayerPrefix: {
+                        workspace: 'eco_myd11c3_avg',
+                        layerName: 'lst_average_6km_myd11c3'
+                    }
                 },
                 {
                     id: 'et',
@@ -49,6 +55,12 @@ define([
                     coverageSectorCode: 'et',
                     cachedLayers: [],
                     zscore: true,
+                    anomalyLayerPrefix: 'eco_et_anomaly:et_anomaly_6km_mod16a2',
+                    zscoreLayerPrefix: 'eco_et_zscore:et_zscore_6km_mod16a2',
+                    averageLayerPrefix: {
+                        workspace: 'eco_et_avg',
+                        layerName: 'et_average_6km_mod16a2'
+                    }
                 },
                 //{
                 //    id: 'rainfall',
@@ -61,6 +73,11 @@ define([
                     coverageSectorCode: 'mod13a3',
                     cachedLayers: [],
                     zscore: false,
+                    anomalyLayerPrefix: 'eco_mod13a3_anomaly:ndvi_anomaly_1km_mod13a3',
+                    averageLayerPrefix: {
+                        workspace: 'eco_mod13a3_avg',
+                        layerName: 'ndvi_average_1km_mod13a3'
+                    }
                 }
             ],
 
@@ -311,7 +328,7 @@ define([
                 var fromDate = cachedLayers[i].meContent.seCoverage.coverageTime.from;
                 var d = new Date(fromDate);
                 if (d.getFullYear() == year) {
-                    console.log(d.getMonth());
+                    //console.log(d.getMonth());
                     layers[d.getMonth()] = cachedLayers[i]
                 }
             }
@@ -372,16 +389,18 @@ define([
 
         $chart.empty();
 
-        $chart.highcharts({
+        var c = {
             xAxis: {
                 categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
             },
             series: []
-        });
+        };
+        var c = $.extend(true, {}, HighchartsTemplate, c);
+
+        $chart.highcharts(c);
 
         var index= $chart.data('highchartsChart');
         box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
-
 
         for(var year=2015; year >= 2000; year--) {
             this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString()).then(function(v) {
@@ -394,6 +413,29 @@ define([
                 }
             });
         }
+
+        // add Avg
+        var avgLayers = [];
+        for (var i=1; i <= 12; i++) {
+            var month = (i < 10)? '0' + i: i;
+            var l = {
+                dsd: $.extend(true, {}, box.averageLayerPrefix)
+            }
+
+            l.dsd.layerName = l.dsd.layerName + "_" + month + "_3857";
+            avgLayers.push(l);
+        }
+        console.log(avgLayers);
+        this.getChartData(avgLayers, lat, lon, 'AVG').then(function(v) {
+            for(var i=0; i < v.data.length; i++) {
+                if (v.data[i] != null) {
+                    box.chartObj.addSeries(v);
+                    break;
+                }
+            }
+        });
+
+
 
         //var membersList = this.getDataTest();
 
@@ -481,7 +523,9 @@ define([
 
 
     WSP.prototype.initMap = function(c) {
-        var m = new FM.Map(c, {
+/*
+    TODO: new map is not working in fullscreen mode
+    var m = new FM.Map(c, {
             plugins: {
                 zoomcontrol: 'bottomright',
                 disclaimerfao: true,
@@ -496,6 +540,26 @@ define([
                 baselayer: true,
                 wmsLoader: true
             }
+        });*/
+
+        var m = new FM.Map(c, {
+            plugins: {
+                geosearch: true,
+                mouseposition: false,
+                controlloading : true,
+                zoomControl: 'bottomright'
+            },
+            guiController: {
+                overlay: true,
+                baselayer: true,
+                wmsLoader: true
+            },
+            gui: {
+                disclaimerfao: true
+            }
+        }, {
+            zoomControl: false,
+            attributionControl: false
         });
         m.createMap();
 

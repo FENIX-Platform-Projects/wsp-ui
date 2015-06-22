@@ -39,8 +39,8 @@ define(function() {
                 'jquery.hoverIntent': FENIX_CDN + '/js/jquery.hoverIntent/1.8.0/jquery.hoverIntent.min',
                 'select2': FENIX_CDN + '/js/select2/3.5.2/js/select2.min',
 
-                'fenix-ui-map': FENIX_CDN + '/js/fenix-ui-map/0.1/fenix-ui-map.min',
-                'fenix-ui-map-config': FENIX_CDN + '/js/fenix-ui-map/0.1/fenix-ui-map-config',
+                'fenix-ui-map': FENIX_CDN + '/js/fenix-ui-map/0.0.1-fullscreen-fixed/fenix-ui-map.min',
+                'fenix-ui-map-config': FENIX_CDN + '/js/fenix-ui-map/0.0.1-fullscreen-fixed/fenix-ui-map-config',
 
                 'fx-wsp-ui/start' : './start',
                 'fx-wsp-ui/html' : '../html',
