@@ -64,6 +64,11 @@ define([
                 }
             ],
 
+            layers: {
+                wheatLayer: 'earthstat:wheat_area_3857'
+
+            },
+
             // query raster timeserie
             pixel_query : {
                 "raster": [
@@ -116,10 +121,10 @@ define([
                 {
                     box_title: this.o.box[i].title,
                     add_new_line: i % 2 == 1,
-                    z_score_label: i18n.z_score_label,
-                    anomaly_label: i18n.anomaly_label,
-                    footer_text: i18n.copyright_label,
-                    please_select_label: i18n.please_select_label,
+                    z_score: i18n.z_score,
+                    anomaly: i18n.anomaly,
+                    footer_text: i18n.copyright,
+                    please_select: i18n.please_select,
 
                     // ids
                     box_id: this.o.box[i].id
@@ -128,7 +133,9 @@ define([
         }
         var dynamic_data = {
             box: this.o.box,
-            wsp_label: i18n.wsp_label
+            wsp: i18n.wsp,
+            wheat: i18n.wheat,
+            population: i18n.population
         };
         var html = template(dynamic_data);
         this.$placeholder.html(html);
@@ -159,19 +166,30 @@ define([
 
             // anomaly
             this.o.box[i].$anomalyBtn.on('click', {box: this.o.box[i]}, function (e) {
-                _this.toggleLayer(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly")
+                _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
             })
 
             this.o.box[i].$zscoreBtn.on('click', {box: this.o.box[i]}, function (e) {
-                _this.toggleLayer(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score")
+                _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
             });
         }
 
         // sync maps
         this.syncMaps(this.o.box);
+
+        // wheat and population toggle layers
+        this.o.$wheatBtn = this.$placeholder.find('[data-role="wheat"]');
+        this.o.$wheatBtn.on('click', {box: this.o.box, layers: this.o.layers}, function (e) {
+            var box = e.data.box,
+                layers = e.data.layers;
+
+            for (var i=0; i< box.length; i++) {
+                _this.toggleLayer(box[i], 'wheatLayer', layers.wheatLayer, i18n.wheat);
+            }
+        });
     };
 
-    WSP.prototype.toggleLayer = function(box, layerType, layerTypePrefix, layerTitle) {
+    WSP.prototype.toggleLayerDate = function(box, layerType, layerTypePrefix, layerTitle) {
         var layerName = box.$dd.find(":selected").val(),
             layer = this.getLayerByLayerName(layerName, box.cachedLayers),
             date = this.getYearMonthByLayer(layer);
@@ -187,7 +205,26 @@ define([
                 opacity: '0.9',
                 lang: 'EN',
                 openlegend: true,
-                defaultgfi: true
+                //defaultgfi: true
+            });
+            box.m.addLayer(box[layerType]);
+        }
+    };
+
+
+    WSP.prototype.toggleLayer = function(box, layerType, layer, layerTitle) {
+        if (box[layerType] !== null && box[layerType] !== undefined) {
+            box.m.removeLayer(box[layerType]);
+            box[layerType] = null;
+        }else {
+            box[layerType] = new FM.layer({
+                layers: layer,
+                layertitle: layerTitle,
+                urlWMS: Services.url_geoserver_wms_demo,
+                opacity: '0.9',
+                lang: 'EN',
+                //openlegend: true,
+                //defaultgfi: true
             });
             box.m.addLayer(box[layerType]);
         }
@@ -198,7 +235,6 @@ define([
         var coverageSectorCode = box.coverageSectorCode,
             $dd = box.$dd;
 
-
         var request_filter = {
             "meContent.resourceRepresentationType" : {
                 "enumeration" : ["geographic"]
@@ -208,14 +244,13 @@ define([
                     {
                         "uid" : "layers_products",
                         "version" : "1.0",
-                        "codes": [box.coverageSectorCode]
+                        "codes": [coverageSectorCode]
                     }
                 ]
             }
-        }
+        };
 
         var url = Services.url_d3s_resources_find + "?" + Services.url_d3s_resources_find_order_by_date_parameters;
-
         var _this = this;
         $.ajax({
             type: 'POST',
@@ -268,10 +303,10 @@ define([
 
     WSP.prototype.getLayersByYear = function(cachedLayers, year) {
         var layers = [];
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i< 12; i++) {
             layers.push(null);
         }
-        for (var i=0; i < cachedLayers.length; i++) {
+        for (var i = 0; i < cachedLayers.length; i++) {
             try {
                 var fromDate = cachedLayers[i].meContent.seCoverage.coverageTime.from;
                 var d = new Date(fromDate);
@@ -348,7 +383,7 @@ define([
         box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
 
 
-        for(var year=2015; year >= 2010; year--) {
+        for(var year=2015; year >= 2000; year--) {
             this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString()).then(function(v) {
                 // check response
                 for(var i=0; i < v.data.length; i++) {
