@@ -417,8 +417,11 @@ define([
     WSP.prototype.getYearMonthByLayer = function(layer) {
         console.log(layer);
         var fromDate = layer.meContent.seCoverage.coverageTime.from,
-            d = new Date(fromDate);
-        return (d.getMonth() > 9)? d.getFullYear().toString() + d.getMonth().toString(): d.getFullYear().toString() + '0' + d.getMonth().toString();
+            d = new Date(fromDate),
+            month = d.getMonth() + 1,
+            year = d.getFullYear();
+
+        return (month > 9)? year.toString() + month.toString(): year.toString() + '0' + month.toString();
     };
 
     WSP.prototype.loadLayer = function(m, selectedLayer, workspace, layerName, layerTitle, box) {
