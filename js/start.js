@@ -43,7 +43,7 @@ define([
             box: [
                 {
                     id: 'myd11c3',
-                    title: i18n.temperature_label,
+                    title: i18n.temperature,
                     coverageSectorCode: 'myd11c3',
                     cachedLayers: [],
                     selectedLayer: null,
@@ -57,7 +57,7 @@ define([
                 },
                 {
                     id: 'et',
-                    title: i18n.evapotranspiration_label,
+                    title: i18n.evapotranspiration,
                     coverageSectorCode: 'et',
                     cachedLayers: [],
                     zscore: true,
@@ -190,12 +190,14 @@ define([
         var dynamic_data = {
             box: this.o.box,
             wsp: i18n.wsp,
-            wheat: i18n.wheat,
-            population_landscan: i18n.population_landscan,
-            rainfed_land_gaez:  i18n.rainfed_land_gaez,
-            irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
-            cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010
+            //wheat: i18n.wheat,
+            //population_landscan: i18n.population_landscan,
+            //rainfed_land_gaez:  i18n.rainfed_land_gaez,
+            //irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
+            //cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010,
+            //selectable_layers: i18n.selectable_layers
         };
+        dynamic_data = $.extend(true, {}, dynamic_data, i18n);
         var html = template(dynamic_data);
         this.$placeholder.html(html);
         $('.select2').select2();

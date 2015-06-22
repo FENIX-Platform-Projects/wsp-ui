@@ -16,7 +16,8 @@ define({
         rainfed_land_gaez: 'Rainfed Land GAEZ (2010)',
         irrigated_areas_solaw_2012: 'Irrigated Areas SOLAW (2012)',
         cultivated_land_gaez_2010: 'Cultivated Land GAEZ (2010)',
-        chirps: 'Rainfall'
+        chirps: 'Rainfall',
+        selectable_layers: 'Selectable Layers'
     },
     fr : true,
     es : true
