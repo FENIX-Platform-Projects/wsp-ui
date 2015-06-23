@@ -160,6 +160,14 @@ define([
                     workspace: 'wsp',
                     layerName: 'cultivated_land_10km_gaez_2010_3857',
                     enabled: false
+                },
+                eco_region: {
+                    workspace: 'fenix',
+                    layerName: 'gaul0_3857',
+                    cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
+                    style: 'eco_region_EN',
+                    enabled: false,
+                    zindex:550
                 }
             },
 
@@ -226,6 +234,7 @@ define([
                     add_new_line: i % 2 == 1,
                     z_score: i18n.z_score,
                     anomaly: i18n.anomaly,
+                    anomaly_dpy: i18n.anomaly_dpy,
                     footer_text: i18n.copyright,
                     please_select: i18n.please_select,
 
@@ -237,7 +246,8 @@ define([
                     rainfed_land_gaez:  i18n.rainfed_land_gaez,
                     irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
                     cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010,
-                    selectable_layers: i18n.selectable_layers
+                    selectable_layers: i18n.selectable_layers,
+                    eco_region: i18n.eco_region
                 }
             );
         }
@@ -382,12 +392,21 @@ define([
                 opacity:(layer.opacity !== null && layer.opacity !== undefined)? layer.opacity: '0.9',
                 lang: 'EN',
                 openlegend: (openlegend !== null && openlegend !== undefined)? openlegend: false,
-                defaultgfi: (defaultgfi !== null && defaultgfi !== undefined)? defaultgfi: false
+                defaultgfi: (defaultgfi !== null && defaultgfi !== undefined)? defaultgfi: false,
             };
 
             if (layer.style !== null && layer.style !== undefined) {
                 l.style = layer.style;
             }
+
+            if (layer.cql_filter !== null && layer.cql_filter !== undefined) {
+                l.cql_filter = layer.cql_filter;
+            }
+
+            if (layer.zindex !== null && layer.zindex !== undefined) {
+                l.zindex = layer.zindex;
+            }
+
             box[layerType] = new FM.layer(l);
             box.m.addLayer(box[layerType]);
         }

@@ -4,6 +4,7 @@ define({
         error: 'WSP UI Error',
         z_score: 'ZScore',
         anomaly: 'Anomaly',
+        anomaly_dpy: 'Anomaly DPY',
         rainfall: 'Rainfall',
         copyright: '© FAO 2015',
         temperature: 'Temperature',
@@ -17,7 +18,8 @@ define({
         irrigated_areas_solaw_2012: 'Irrigated Areas SOLAW (2012)',
         cultivated_land_gaez_2010: 'Cultivated Land GAEZ (2010)',
         chirps: 'Rainfall',
-        selectable_layers: 'Layers'
+        selectable_layers: 'Layers',
+        eco_region: 'ECO Region'
     },
     fr : true,
     es : true
