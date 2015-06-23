@@ -2,7 +2,7 @@ define({
     root : {
         ndvi_label: 'NDVI',
         error: 'WSP UI Error',
-        z_score: 'Z-Score',
+        z_score: 'ZScore',
         anomaly: 'Anomaly',
         rainfall: 'Rainfall',
         copyright: '© FAO 2015',
@@ -17,7 +17,7 @@ define({
         irrigated_areas_solaw_2012: 'Irrigated Areas SOLAW (2012)',
         cultivated_land_gaez_2010: 'Cultivated Land GAEZ (2010)',
         chirps: 'Rainfall',
-        selectable_layers: 'Selectable Layers'
+        selectable_layers: 'Layers'
     },
     fr : true,
     es : true

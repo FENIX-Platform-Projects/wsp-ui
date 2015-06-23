@@ -13,7 +13,7 @@ define([
     'fx-wsp-ui/config/highcharts_template',
     'fenix-ui-map',
     'select2',
-    'sweetAlert',
+    'bootstrap',
     'bootstrap-toggle'
 ], function (
     $,
@@ -53,6 +53,16 @@ define([
                     averageLayerPrefix: {
                         workspace: 'eco_myd11c3_avg',
                         layerName: 'lst_average_6km_myd11c3'
+                    },
+                    chart: {
+                        formula: '({{x}} * 0.02) - 273.15',
+                        chartObj: {
+                            yAxis: {
+                                title: {
+                                    text: 'Temperature (°C)'
+                                }
+                            }
+                        }
                     }
                 },
                 {
@@ -66,6 +76,16 @@ define([
                     averageLayerPrefix: {
                         workspace: 'eco_et_avg',
                         layerName: 'et_average_6km_mod16a2'
+                    },
+                    chart: {
+                        formula: '{{x}} / 0.01',
+                        chartObj: {
+                            yAxis: {
+                                title: {
+                                    text: 'Evapotranspiration (mm)'
+                                }
+                            }
+                        }
                     }
                 },
                 {
@@ -79,6 +99,15 @@ define([
                     averageLayerPrefix: {
                         workspace: 'chirps_avg',
                         layerName: 'rainfall_average_6km_chirps'
+                    },
+                    chart: {
+                        chartObj: {
+                            yAxis: {
+                                title: {
+                                    text: 'Rainfall (mm)'
+                                }
+                            }
+                        }
                     }
                 },
                 {
@@ -91,6 +120,15 @@ define([
                     averageLayerPrefix: {
                         workspace: 'eco_mod13a3_avg',
                         layerName: 'ndvi_average_1km_mod13a3'
+                    },
+                    chart: {
+                        chartObj: {
+                            yAxis: {
+                                title: {
+                                    text: 'NDVI'
+                                }
+                            }
+                        }
                     }
                 }
             ],
@@ -100,7 +138,7 @@ define([
                 wheat: {
                     workspace: 'earthstat',
                     layerName: 'wheat_area_3857',
-                    style: 'Wheat_SAGE_harvested_area',
+                    //style: 'Wheat_SAGE_harvested_area',
                     enabled: false
                 },
                 population_landscan: {
@@ -147,7 +185,16 @@ define([
                 xAxis: {
                     categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
                 },
-                series: []
+                tooltip: {
+                    valueDecimals: 1
+                },
+                yAxis: {
+                    title: {
+                        enabled: true,
+                    }
+                },
+                series: [],
+
             }
         }
     };
@@ -183,7 +230,14 @@ define([
                     please_select: i18n.please_select,
 
                     // ids
-                    box_id: this.o.box[i].id
+                    box_id: this.o.box[i].id,
+
+                    wheat: i18n.wheat,
+                    population_landscan: i18n.population_landscan,
+                    rainfed_land_gaez:  i18n.rainfed_land_gaez,
+                    irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
+                    cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010,
+                    selectable_layers: i18n.selectable_layers
                 }
             );
         }
@@ -218,9 +272,10 @@ define([
         // Global layers (Toggle conditions)
         Object.keys(this.o.layers).forEach(_.bind(function(key) {
             var _this = this;
-            this.$landing.find('[data-role="'+ key +'"]').on('click', {box: this.o.landing, layers: this.o.layers[key]}, function (e) {
+            this.$landing.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.landing, layers: this.o.layers[key]}, function (e) {
                 var box = e.data.box,
                     layers = e.data.layers;
+
                 _this.toggleLayer(box, key, layers, i18n[key], true, true);
             });
         }, this));
@@ -236,8 +291,6 @@ define([
             this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
             this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
             this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
-            this.o.box[i].$anomalyBtn = this.o.box[i].$box.find('[data-role="anomaly"]');
-            this.o.box[i].$zscoreBtn = this.o.box[i].$box.find('[data-role="zscore"]');
 
             // init dropdown
             this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
@@ -252,29 +305,45 @@ define([
             }, {box: this.o.box[i]});
 
             // anomaly
-            this.o.box[i].$anomalyBtn.on('click', {box: this.o.box[i]}, function (e) {
+            this.o.box[i].$box.find('[data-role="anomaly"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
                 _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
-            })
+            });
 
-            this.o.box[i].$zscoreBtn.on('click', {box: this.o.box[i]}, function (e) {
+            // zscore
+            this.o.box[i].$box.find('[data-role="zscore"] input[type="checkbox"]').change( {box: this.o.box[i]}, function (e) {
                 _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
             });
+
+            this.o.box[i].m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
+
+            Object.keys(this.o.layers).forEach(_.bind(function(key) {
+                this.o.box[i].$box.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.box[i], layers: this.o.layers[key]}, function (e) {
+                    var box = e.data.box,
+                        layers = e.data.layers;
+
+                    console.log(box, layers);
+                    _this.toggleLayer(box, key, layers, i18n[key]);
+                });
+
+            }, this));
         }
 
         // sync maps
         this.syncMaps(this.o.box);
 
         // Global layers (Toggle conditions)
-        Object.keys(this.o.layers).forEach(_.bind(function(key) {
-            this.$tool.find('[data-role="'+ key +'"]').on('click', {box: this.o.box, layers: this.o.layers[key]}, function (e) {
+/*        Object.keys(this.o.layers).forEach(_.bind(function(key) {
+            this.$tool.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.box, layers: this.o.layers[key]}, function (e) {
                 var box = e.data.box,
                     layers = e.data.layers;
 
+                // TODO: make it workable with the checkbox seleciont (this.checked)
                 for (var i=0; i< box.length; i++) {
                     _this.toggleLayer(box[i], key, layers, i18n[key]);
                 }
             });
-        }, this));
+
+        }, this));*/
     };
 
 
@@ -301,6 +370,7 @@ define([
     };
 
     WSP.prototype.toggleLayer = function(box, layerType, layer, layerTitle, openlegend, defaultgfi) {
+        var layerType = 'layer-' + layerType;
         if (box[layerType] !== null && box[layerType] !== undefined) {
             box.m.removeLayer(box[layerType]);
             box[layerType] = null;
@@ -318,7 +388,6 @@ define([
             if (layer.style !== null && layer.style !== undefined) {
                 l.style = layer.style;
             }
-
             box[layerType] = new FM.layer(l);
             box.m.addLayer(box[layerType]);
         }
@@ -467,18 +536,25 @@ define([
             $chart = box.$chart;
 
         $chart.empty();
-        $chart.html('<i class="fa fa-spinner fa-spin"></i><span> Loading Chart...</span>');
+        $chart.html('<div style="height:350px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading '+ box.title +' Pixel Timeseries</span></div>');
+
+        box.chartObj = null;
 
         // chart template
-        var c = $.extend(true, {}, this.o.chart_template, HighchartsTemplate);
+        console.log(box.chart.chartObj);
+        var c = $.extend(true, {}, HighchartsTemplate, this.o.chart_template, box.chart.chartObj);
+        console.log(c);
 
-        $chart.highcharts(c);
 
-        var index= $chart.data('highchartsChart');
-        box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
+        var formula = (box.chart.formula)? box.chart.formula: null;
+        for(var year=2015; year >= 2007; year--) {
+            this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString(), formula).then(function(v) {
 
-        for(var year=2015; year >= 2000; year--) {
-            this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString()).then(function(v) {
+                if (box.chartObj === null) {
+                    $chart.highcharts(c);
+                    box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
+                }
+
                 // check response
                 for(var i=0; i < v.data.length; i++) {
                     if (v.data[i] != null) {
@@ -501,7 +577,7 @@ define([
             avgLayers.push(l);
         }
         console.log(avgLayers);
-        this.getChartData(avgLayers, lat, lon, 'AVG').then(function(v) {
+        this.getChartData(avgLayers, lat, lon, 'AVG', formula).then(function(v) {
             for(var i=0; i < v.data.length; i++) {
                 if (v.data[i] != null) {
                     v.dashStyle = 'longdash';
@@ -563,7 +639,7 @@ define([
         return deferred.promise;
     };
 
-    WSP.prototype.getChartData = function(layers, lat, lon, serieName) {
+    WSP.prototype.getChartData = function(layers, lat, lon, serieName, formula) {
         var deferred = Q.defer();
 
         var data = $.extend(true, {}, this.o.pixel_query);
@@ -584,6 +660,8 @@ define([
             lon: lon
         }
 
+
+        var _this = this;
         $.ajax({
             type: 'POST',
             url: Services.url_geostatistics_rasters_pixel,
@@ -594,8 +672,23 @@ define([
             success : function(response) {
                 var d = {
                     name: serieName,
-                    data: response
+                    data: []
+                   // data: response
                 }
+                if (formula !== null && formula !== undefined) {
+                    for(var i=0; i < response.length; i++) {
+                        var v = response[i]
+                        if (response[i] !== null && response[i] !== undefined) {
+                            d.data.push(_this.mathEval(formula.replace('{{x}}', response[i])));
+                        }
+                        else{
+                            d.data.push(response[i]);
+                        }
+                    }
+                }else{
+                    d.data = response;
+                }
+
                 deferred.resolve(d);
             },
             error : function(err, b, c) {}
@@ -607,7 +700,7 @@ define([
 
 
     WSP.prototype.initMap = function(c, fullscreenID) {
-/*
+    /*
     TODO: new map is not working in fullscreen mode
     var m = new FM.Map(c, {
             plugins: {
@@ -680,6 +773,35 @@ define([
             }
         }
     };
+
+    WSP.prototype.mathEval = function (exp) {
+        var reg = /(?:[a-z$_][a-z0-9$_]*)|(?:[;={}\[\]"'!&<>^\\?:])/ig,
+            valid = true;
+
+        // Detect valid JS identifier names and replace them
+        exp = exp.replace(reg, function ($0) {
+            // If the name is a direct member of Math, allow
+            if (Math.hasOwnProperty($0))
+                return "Math."+$0;
+            else if (Math.hasOwnProperty($0.toUpperCase()))
+                return "Math."+$0.toUpperCase();
+            // Otherwise the expression is invalid
+            else
+                valid = false;
+        });
+
+        // Don't eval if our replace function flagged as invalid
+        if (!valid) {
+            alert("Invalid arithmetic expression");
+        }
+        else {
+            try {
+               return eval(exp);
+            } catch (e) {
+                alert("Invalid arithmetic expression");
+            }
+        }
+    }
 
     return WSP;
 });
