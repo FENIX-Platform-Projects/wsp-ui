@@ -3,7 +3,7 @@ define({
         ndvi_label: 'NDVI',
         error: 'WSP UI Error',
         z_score: 'ZScore',
-        anomaly: 'Anomaly',
+        anomaly: 'Anomaly AVG',
         anomaly_dpy: 'Anomaly DPY',
         rainfall: 'Rainfall',
         copyright: '© FAO 2015',
@@ -19,7 +19,10 @@ define({
         cultivated_land_gaez_2010: 'Cultivated Land GAEZ (2010)',
         chirps: 'Rainfall',
         selectable_layers: 'Layers',
-        eco_region: 'ECO Region'
+        eco_region: 'ECO Region',
+        gaul1: 'Administrative Unit Level1 (AFG)',
+        hotspot: 'hotspot',
+        wheat_area: 'Wheat Area'
     },
     fr : true,
     es : true

@@ -50,7 +50,7 @@ define([
                     coverageSectorCode: 'myd11c3',
                     cachedLayers: [],
                     selectedLayer: null,
-                    zscore: true,
+                    addZscore: true,
                     anomalyLayerPrefix: 'eco_myd11c3_anomaly:lst_anomaly_6km_myd11c3',
                     anomalyDPYLayerPrefix: 'eco_myd11c3_anomaly_dpy:lst_anomaly_dpy_6km_myd11c3',
                     zscoreLayerPrefix: 'eco_myd11c3_zscore:lst_zscore_6km_myd11c3',
@@ -74,7 +74,7 @@ define([
                     title: i18n.evapotranspiration,
                     coverageSectorCode: 'et',
                     cachedLayers: [],
-                    zscore: true,
+                    addZscore: true,
                     anomalyLayerPrefix: 'eco_et_anomaly:et_anomaly_6km_mod16a2',
                     anomalyDPYLayerPrefix: 'eco_et_anomaly_dpy:et_anomaly_dpy_6km_mod16a2',
                     zscoreLayerPrefix: 'eco_et_zscore:et_zscore_6km_mod16a2',
@@ -98,7 +98,7 @@ define([
                     title: i18n.chirps,
                     coverageSectorCode: 'chirps',
                     cachedLayers: [],
-                    zscore: true,
+                    addZscore: true,
                     anomalyLayerPrefix: 'chirps_anomaly:rainfall_anomaly_6km_chirps',
                     anomalyDPYLayerPrefix: 'chirps_anomaly_dpy:rainfall_anomaly_dpy_6km_chirps',
                     zscoreLayerPrefix: 'chirps_zscore:rainfall_zscore_6km_chirps',
@@ -121,7 +121,9 @@ define([
                     title: i18n.ndvi_label,
                     coverageSectorCode: 'mod13a3',
                     cachedLayers: [],
-                    zscore: false,
+                    addZscore: false,
+                    addHotspot: true,
+                    addGaul1: true,
                     anomalyLayerPrefix: 'eco_mod13a3_anomaly:ndvi_anomaly_1km_mod13a3',
                     anomalyDPYLayerPrefix: 'eco_mod13a3_anomaly_dpy:ndvi_anomaly_dpy_1km_mod13a3',
                     averageLayerPrefix: {
@@ -144,22 +146,25 @@ define([
                 }
             ],
 
+            // population (sld prcedente) - default
+            // cultivated
+            //ittigated
+            //    rainfed
+            //wheat
+
+
+
+
             // Global layers to load for each map
             layers: {
-                wheat: {
-                    workspace: 'earthstat',
-                    layerName: 'wheat_area_3857',
-                    //style: 'Wheat_SAGE_harvested_area',
-                    enabled: false
-                },
                 population_landscan: {
                     workspace: 'wsp',
                     layerName: 'population_1km_landscan_2012_3857',
                     enabled: false
                 },
-                rainfed_land_gaez: {
+                cultivated_land_gaez_2010: {
                     workspace: 'wsp',
-                    layerName: 'rainfed_land_10km_gaez_2010_3857',
+                    layerName: 'cultivated_land_10km_gaez_2010_3857',
                     enabled: false
                 },
                 irrigated_areas_solaw_2012: {
@@ -167,9 +172,15 @@ define([
                     layerName: 'irrigated_areas_10km_solaw_2012_3857',
                     enabled: false
                 },
-                cultivated_land_gaez_2010: {
+                rainfed_land_gaez: {
                     workspace: 'wsp',
-                    layerName: 'cultivated_land_10km_gaez_2010_3857',
+                    layerName: 'rainfed_land_10km_gaez_2010_3857',
+                    enabled: false
+                },
+                wheat: {
+                    workspace: 'earthstat',
+                    layerName: 'wheat_area_3857',
+                    //style: 'Wheat_SAGE_harvested_area',
                     enabled: false
                 },
                 eco_region: {
@@ -180,6 +191,36 @@ define([
                     enabled: false,
                     openlegend: false,
                     zindex:550
+                },
+                gaul1: {
+                    workspace: 'fenix',
+                    layerName: 'gaul1_3857',
+                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
+                    cql_filter: "adm0_code IN (1.00000)",
+                    style: 'gaul1_highlight_polygon',
+                    enabled: false,
+                    openlegend: false,
+                    zindex:450
+                },
+                hotspot: {
+                    workspace: 'fenix',
+                    layerName: 'gaul1_3857',
+                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
+                    cql_filter: "adm0_code IN (1.00000)",
+                    style: 'gaul1_highlight_polygon',
+                    enabled: false,
+                    openlegend: false,
+                    zindex:450
+                },
+                wheat_area: {
+                    workspace: 'fenix',
+                    layerName: 'gaul1_3857',
+                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
+                    cql_filter: "adm0_code IN (1.00000)",
+                    style: 'gaul1_highlight_polygon',
+                    enabled: false,
+                    openlegend: false,
+                    zindex:450
                 }
             },
 
@@ -259,10 +300,14 @@ define([
                     irrigated_areas_solaw_2012:  i18n.irrigated_areas_solaw_2012,
                     cultivated_land_gaez_2010:  i18n.cultivated_land_gaez_2010,
                     selectable_layers: i18n.selectable_layers,
-                    eco_region: i18n.eco_region
+                    eco_region: i18n.eco_region,
+                    gaul1: i18n.gaul1,
+                    hotspot: i18n.hotspot,
+                    wheat_area: i18n.wheat_area
                 }
             );
         }
+
         var dynamic_data = {
             box: this.o.box,
             wsp: i18n.wsp,
@@ -303,7 +348,7 @@ define([
         if (this.o.landing.init === false) {
             this.o.landing.m = this.initMap(this.$landing.find('[data-role="map"]'));
 
-            this.toggleLayer(this.o.landing, 'wheat', this.o.layers.wheat, i18n.wheat, true, true);
+            this.toggleLayer(this.o.landing, 'population_landscan', this.o.layers.population_landscan, i18n.population_landscan, true, true);
 
             // Global layers (Toggle conditions)
             Object.keys(this.o.layers).forEach(_.bind(function (key) {
@@ -347,8 +392,8 @@ define([
                 // init map
                 this.o.box[i].m = this.initMap(this.o.box[i].$map);
 
+                // create charts on smap selection
                 this.o.box[i].m.map.on('click', function (e) {
-                    //_this.createChart(this.box, e.latlng.lat, e.latlng.lng);
                     _this.createCharts(e.latlng.lat, e.latlng.lng);
                 }, {box: this.o.box[i]});
 
@@ -377,7 +422,6 @@ define([
                         var box = e.data.box,
                             layers = e.data.layers;
 
-                        console.log(box, layers);
                         _this.toggleLayer(box, key, layers, i18n[key]);
                     });
 
@@ -420,7 +464,7 @@ define([
                 layers: layerTypePrefix + "_" + date + "_3857",
                 layertitle: layerTitle + " " + date,
                 urlWMS: Services.url_geoserver_wms_demo,
-                opacity: '0.9',
+                opacity: '1',
                 lang: 'EN',
                 openlegend: true,
                 //defaultgfi: true
@@ -439,7 +483,7 @@ define([
                 layers: layer.workspace + ":" + layer.layerName,
                 layertitle: layerTitle,
                 urlWMS: Services.url_geoserver_wms_demo,
-                opacity:(layer.opacity !== null && layer.opacity !== undefined)? layer.opacity: '0.9',
+                opacity:(layer.opacity !== null && layer.opacity !== undefined)? layer.opacity: '1',
                 lang: 'EN',
                 openlegend: (openlegend !== null && openlegend !== undefined)? openlegend: false,
                 defaultgfi: (defaultgfi !== null && defaultgfi !== undefined)? defaultgfi: false,
@@ -580,7 +624,7 @@ define([
             layers: workspace + ":" + layerName,
             layertitle: layerTitle,
             urlWMS: Services.url_geoserver_wms_demo,
-            opacity: '0.9',
+            opacity: '1',
             lang: 'EN',
             openlegend: true,
             defaultgfi: true,
@@ -610,8 +654,8 @@ define([
         var cachedLayers = box.cachedLayers,
             $chart = box.$chart;
 
-        $chart.empty();
-        $chart.html('<div style="height:350px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading '+ box.title +' Pixel Timeseries</span></div>');
+        //$chart.empty();
+        $chart.html('<div style="height:400px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading '+ box.title +' Pixel Timeseries</span></div>');
 
         box.chartObj = null;
 
@@ -809,9 +853,9 @@ define([
 
         var m = new FM.Map(c, {
             plugins: {
-                geosearch: true,
+                geosearch: false,
                 mouseposition: false,
-                controlloading : true,
+                controlloading : false,
                 zoomControl: 'bottomright'
             },
             guiController: {
@@ -833,7 +877,7 @@ define([
             layertitle: '',
             urlWMS: Services.url_geoserver_wms_demo,
             opacity: '1',
-            zindex: '500',
+            zindex: '400',
             lang: 'en',
             hideLayerInControllerList: true
         }));
@@ -842,19 +886,12 @@ define([
             layers: 'fenix:gaul0_line_3857',
             layertitle: i18n.country_coundaries,
             urlWMS: Services.url_geoserver_wms,
-            opacity: '0.9',
-            zindex: '501',
+            opacity: '1',
+            zindex: '500',
             lang: 'en',
             hideLayerInControllerList: true
         }));
 
-        // On Move
-        var _m = m;
-        var _this = this
-        var GFIchk = {};
-        GFIchk["lat-" + m.id] = 0;
-        GFIchk["lng-" + m.id] = 0;
-        GFIchk["globalID-" + m.id] = 0;
 
         return m;
     };
