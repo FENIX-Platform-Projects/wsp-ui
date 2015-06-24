@@ -126,11 +126,15 @@ define([
                         layerName: 'ndvi_average_1km_mod13a3'
                     },
                     chart: {
+                        formula: '{{x}} / 10000',
                         chartObj: {
                             yAxis: {
                                 title: {
                                     text: 'NDVI'
                                 }
+                            },
+                            tooltip: {
+                                valueDecimals: 4
                             }
                         }
                     }
