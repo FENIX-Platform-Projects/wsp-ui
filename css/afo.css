@@ -1,51 +1,4 @@
-/* AFO Theme */
-/* AFO Variables */
-/* Fenix Utils*/
-/* Fenix Style No Variables */
-/* Utils */
-/* Base */
-/* Fenix Fonts Import */
-/* Eldorado */
-/* ELDORADO FONT STANDARD CONFIGURATION*/
-/* Eldorado  */
-@font-face {
-    font-family: 'eldorado_stroke';
-    src: url("http://fenixapps.fao.org/repository/fenix-ui-common/css/fonts/eldorado/eldorado_stroke.eot");
-    src: url("http://fenixapps.fao.org/repository/fenix-ui-common/css/fonts/eldorado/eldorado_stroke.eot?#iefix") format("embedded-opentype"), url("http://fenixapps.fao.org/repository/fenix-ui-common/css/fonts/eldorado/eldorado_stroke.woff") format("woff"), url("http://fenixapps.fao.org/repository/fenix-ui-common/css/fonts/eldorado/eldorado_stroke.ttf") format("truetype"), url("http://fenixapps.fao.org/repository/fenix-ui-common/css/fonts/eldorado/eldorado_stroke.svg#RobotoRegular") format("svg");
-    font-weight: normal;
-    font-style: normal; }
-[class^="icojam_"], [class*=" icojam_"] {
-    font-family: 'eldorado_stroke';
-    speak: none;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    /* Better Font Rendering =========== */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale; }
 
-/* Active Icons */
-.icojam_button_new_1:before {
-    content: "\eb2a"; }
-
-.icojam_button_foward_1:before {
-    content: "\eb26"; }
-
-.icojam_document_text:before {
-    content: "\eb26"; }
-
-.icojam_grid_thumbnails:before {
-    content: "\e9a8"; }
-
-.icojam_elevation_4:before {
-    content: "\e80d"; }
-
-.icojam_swap_horizontal_1:before {
-    content: "\eb45"; }
-
-.icojam_wedding_jewel:before {
     content: "\e96c"; }
 
 .icojam_inbox_receive:before {
@@ -1025,7 +978,8 @@ input[type="radio"]:checked + label:before {
 
 /* Checkbox Buttons */
 input[type="checkbox"] {
-    display: none; }
+    /*display: none; */
+}
 
 input[type="checkbox"] + label {
     cursor: pointer;

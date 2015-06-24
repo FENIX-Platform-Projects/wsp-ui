@@ -418,7 +418,7 @@ define([
 
                             var div = '';
                             div += '<h3>'+ i18n.zonalStatisticsTitle +'</h3>';
-                            div += '<table class="table table-condensed">';
+                            div += '<table class="table table-striped table-condensed">';
                             div += '<thead><tr>';
                             for (var i = 0; i < headers.length; i++) {
                                 div += "<th>" + i18n[headers[i]] + "</th>";
