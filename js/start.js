@@ -358,6 +358,7 @@ define([
         }
         else {
             // force invalidate size
+            this.o.landing.m.invalidateSize();
         }
 
     };
@@ -408,7 +409,7 @@ define([
 
                     if ( this.checked) {
 
-                        $zonalStatsTable.html('<div style="height:400px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading '+ box.title +' ZonalStats</span></div>');
+                        $zonalStatsTable.html('<div style="height:400px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading ZonalStats</span></div>');
 
                         setTimeout(function() {
 
@@ -481,6 +482,11 @@ define([
              }, this));*/
 
             this.o.tool.init = true;
+        }
+        else {
+            for (var i = 0; i < this.o.box.length; i++) {
+                this.o.box[i].m.invalidateSize();
+            }
         }
 
     };
