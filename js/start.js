@@ -201,7 +201,7 @@ define([
                     workspace: 'eco',
                     layerName: 'drought_hotspot_afg_200803_3857',
                     enabled: false,
-                    openlegend: true
+                    openlegend: false
                 },
                 wheat_area: {
                     workspace: 'eco',
