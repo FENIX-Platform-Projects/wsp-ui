@@ -9,6 +9,7 @@ define([
     'i18n!fx-wsp-ui/nls/translate',
     'fx-c-c/start',
     'fx-wsp-ui/config/Services',
+    'text!fx-wsp-ui/config/gaul1_ndvi_afg.json',
     'q',
     'fx-wsp-ui/config/highcharts_template',
     'fenix-ui-map',
@@ -23,6 +24,7 @@ define([
     i18n,
     ChartCreator,
     Services,
+    ZonalStats,
     Q,
     HighchartsTemplate
 ) {
@@ -123,7 +125,9 @@ define([
                     cachedLayers: [],
                     addZscore: false,
                     addHotspot: true,
+                    addWheatAreaAFG: true,
                     addGaul1: true,
+                    addZonalStats: true,
                     anomalyLayerPrefix: 'eco_mod13a3_anomaly:ndvi_anomaly_1km_mod13a3',
                     anomalyDPYLayerPrefix: 'eco_mod13a3_anomaly_dpy:ndvi_anomaly_dpy_1km_mod13a3',
                     averageLayerPrefix: {
@@ -145,15 +149,6 @@ define([
                     }
                 }
             ],
-
-            // population (sld prcedente) - default
-            // cultivated
-            //ittigated
-            //    rainfed
-            //wheat
-
-
-
 
             // Global layers to load for each map
             layers: {
@@ -203,24 +198,16 @@ define([
                     zindex:450
                 },
                 hotspot: {
-                    workspace: 'fenix',
-                    layerName: 'gaul1_3857',
-                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
-                    cql_filter: "adm0_code IN (1.00000)",
-                    style: 'gaul1_highlight_polygon',
+                    workspace: 'eco',
+                    layerName: 'drought_hotspot_afg_200803_3857',
                     enabled: false,
-                    openlegend: false,
-                    zindex:450
+                    openlegend: true
                 },
                 wheat_area: {
-                    workspace: 'fenix',
-                    layerName: 'gaul1_3857',
-                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
-                    cql_filter: "adm0_code IN (1.00000)",
-                    style: 'gaul1_highlight_polygon',
+                    workspace: 'eco',
+                    layerName: 'wheat_area_afg_3857',
                     enabled: false,
-                    openlegend: false,
-                    zindex:450
+                    openlegend: false
                 }
             },
 
@@ -303,7 +290,8 @@ define([
                     eco_region: i18n.eco_region,
                     gaul1: i18n.gaul1,
                     hotspot: i18n.hotspot,
-                    wheat_area: i18n.wheat_area
+                    wheat_area: i18n.wheat_area,
+                    zonalstats_gaul1: i18n.zonalstats_gaul1
                 }
             );
         }
@@ -412,6 +400,54 @@ define([
                     _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
                 });
 
+                // zonalstats_gaul1
+                this.o.box[i].$zonalStatsTable = this.o.box[i].$box.find('[data-role="zonalstats_gaul1_table"]');
+                this.o.box[i].$box.find('[data-role="zonalstats_gaul1"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                    var box = e.data.box,
+                        $zonalStatsTable = box.$zonalStatsTable;
+
+                    if ( this.checked) {
+
+                        $zonalStatsTable.html('<div style="height:400px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading '+ box.title +' ZonalStats</span></div>');
+
+                        setTimeout(function() {
+
+                            var table = $.parseJSON(ZonalStats),
+                                headers = Object.keys(table[0]);
+
+                            var div = '';
+                            div += '<h3>'+ i18n.zonalStatisticsTitle +'</h3>';
+                            div += '<table class="table table-condensed">';
+                            div += '<thead><tr>';
+                            for (var i = 0; i < headers.length; i++) {
+                                div += "<th>" + i18n[headers[i]] + "</th>";
+                            }
+                            div += '</tr></thead>';
+
+                            div += '<tbody>';
+                            for (var i = 0; i < table.length; i++) {
+                                div += '<tr>';
+                                for (var j = 0; j < headers.length; j++) {
+                                    div += "<td>" + table[i][headers[j]] + "</td>";
+                                }
+                                div += '</tr>';
+                            }
+                            div += '</tbody>';
+                            div += '</table>';
+
+                            // load json and show table
+                            $zonalStatsTable.html(div);
+
+                        }, 2500);
+                    }
+
+                    else {
+                        // hide table
+                        $zonalStatsTable.empty();
+                    }
+                });
+
+                // zoomTo
                 this.o.box[i].m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
 
                 Object.keys(this.o.layers).forEach(_.bind(function (key) {
@@ -424,7 +460,6 @@ define([
 
                         _this.toggleLayer(box, key, layers, i18n[key]);
                     });
-
                 }, this));
             }
 

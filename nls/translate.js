@@ -21,8 +21,14 @@ define({
         selectable_layers: 'Layers',
         eco_region: 'ECO Region',
         gaul1: 'Administrative Unit Level1 (AFG)',
-        hotspot: 'hotspot',
-        wheat_area: 'Wheat Area'
+        hotspot: 'Drought HotSpot (AFG)',
+        wheat_area: 'Wheat Area (AFG)',
+        zonalstats_gaul1: 'Zonalstats GAUL1 (AFG)',
+        province: 'Province',
+        area_cultivated: 'Area cultivated (ha)',
+        area_affected: 'Area affected (ha)',
+        area_percentage: 'Area affected (%)',
+        zonalStatisticsTitle: 'ZonalStatistics Administrative Unit Level1 (Afghanistan)'
     },
     fr : true,
     es : true
