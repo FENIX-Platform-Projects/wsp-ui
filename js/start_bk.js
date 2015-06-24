@@ -4,7 +4,7 @@ define([
     'jquery',
     'underscore',
     'handlebars',
-    //'text!fx-wsp-ui/html/structure.hbs',
+    //'text!fx-wsp-ui/html/templates.hbs',
     'text!fx-wsp-ui/html/templates_tabs.hbs',
     'i18n!fx-wsp-ui/nls/translate',
     'fx-c-c/start',
@@ -38,10 +38,7 @@ define([
                 landing: "#wsp-landing"
             },
             landing: {
-                init: false
-            },
-            tool: {
-                init: false
+
             },
             box: [
                 {
@@ -281,129 +278,96 @@ define([
         this.$tool =  this.$placeholder.find(this.o.s.tool);
         this.$landing =  this.$placeholder.find(this.o.s.landing);
 
-        var _this =this;
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-
-            var tab = $(e.target).attr("href") // activated tab
-
-            if (tab == _this.o.s.tool) {
-                _this.renderTool();
-            }
-            if (tab == _this.o.s.landing) {
-                _this.renderLanding();
-            }
-        });
-
-        // default render
+        // render landing and tool
         this.renderLanding();
+        this.renderTool();
     };
 
     WSP.prototype.renderLanding = function(c) {
+        this.o.landing.m = this.initMap(this.$landing.find('[data-role="map"]'));
 
-        if (this.o.landing.init === false) {
-            this.o.landing.m = this.initMap(this.$landing.find('[data-role="map"]'));
+        this.toggleLayer(this.o.landing, 'wheat', this.o.layers.wheat, i18n.wheat, true, true);
 
-            this.toggleLayer(this.o.landing, 'wheat', this.o.layers.wheat, i18n.wheat, true, true);
+        // Global layers (Toggle conditions)
+        Object.keys(this.o.layers).forEach(_.bind(function(key) {
+            var _this = this;
+            this.$landing.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.landing, layers: this.o.layers[key]}, function (e) {
+                var box = e.data.box,
+                    layers = e.data.layers;
 
-            // Global layers (Toggle conditions)
-            Object.keys(this.o.layers).forEach(_.bind(function (key) {
-                var _this = this;
-                this.$landing.find('[data-role="' + key + '"] input[type="checkbox"]').change({
-                    box: this.o.landing,
-                    layers: this.o.layers[key]
-                }, function (e) {
-                    var box = e.data.box,
-                        layers = e.data.layers;
+                _this.toggleLayer(box, key, layers, i18n[key], true, true);
+            });
+        }, this));
 
-                    _this.toggleLayer(box, key, layers, i18n[key], true, true);
-                });
-            }, this));
-
-            this.o.landing.m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
-
-            this.o.landing.init = true;
-        }
-        else {
-            // force invalidate size
-        }
-
+        this.o.landing.m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
     };
 
 
     WSP.prototype.renderTool = function() {
+        var _this = this;
+        for (var i = 0 ; i < this.o.box.length ; i++) {
+            this.o.box[i].$box = this.$tool.find('#' + this.o.box[i].id);
+            this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
+            this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
+            this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
 
-        if (this.o.tool.init === false) {
-            var _this = this;
-            for (var i = 0; i < this.o.box.length; i++) {
-                this.o.box[i].$box = this.$tool.find('#' + this.o.box[i].id);
-                this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
-                this.o.box[i].$map = this.o.box[i].$box.find('[data-role="map"]');
-                this.o.box[i].$chart = this.o.box[i].$box.find('[data-role="chart"]');
+            // init dropdown
+            this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
+            this.fillDD(this.o.box[i]);
 
-                // init dropdown
-                this.o.box[i].$dd = this.o.box[i].$box.find('[data-role="dd"]');
-                this.fillDD(this.o.box[i]);
+            // init map
+            this.o.box[i].m = this.initMap(this.o.box[i].$map);
 
-                // init map
-                this.o.box[i].m = this.initMap(this.o.box[i].$map);
+            this.o.box[i].m.map.on('click', function (e) {
+                //_this.createChart(this.box, e.latlng.lat, e.latlng.lng);
+                _this.createCharts(e.latlng.lat, e.latlng.lng);
+            }, {box: this.o.box[i]});
 
-                this.o.box[i].m.map.on('click', function (e) {
-                    //_this.createChart(this.box, e.latlng.lat, e.latlng.lng);
-                    _this.createCharts(e.latlng.lat, e.latlng.lng);
-                }, {box: this.o.box[i]});
+            // anomaly
+            this.o.box[i].$box.find('[data-role="anomaly"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
+            });
 
-                // anomaly
-                this.o.box[i].$box.find('[data-role="anomaly"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
-                    _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
+            // anomaly dpy
+            this.o.box[i].$box.find('[data-role="anomaly_dpy"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                _this.toggleLayerDate(e.data.box, 'anomalyDPYLayer', e.data.box.anomalyDPYLayerPrefix, "Anomaly DPY");
+            });
+
+            // zscore
+            this.o.box[i].$box.find('[data-role="zscore"] input[type="checkbox"]').change( {box: this.o.box[i]}, function (e) {
+                _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
+            });
+
+            this.o.box[i].m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
+
+            Object.keys(this.o.layers).forEach(_.bind(function(key) {
+                this.o.box[i].$box.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.box[i], layers: this.o.layers[key]}, function (e) {
+                    var box = e.data.box,
+                        layers = e.data.layers;
+
+                    console.log(box, layers);
+                    _this.toggleLayer(box, key, layers, i18n[key]);
                 });
 
-                // anomaly dpy
-                this.o.box[i].$box.find('[data-role="anomaly_dpy"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
-                    _this.toggleLayerDate(e.data.box, 'anomalyDPYLayer', e.data.box.anomalyDPYLayerPrefix, "Anomaly DPY");
-                });
-
-                // zscore
-                this.o.box[i].$box.find('[data-role="zscore"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
-                    _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
-                });
-
-                this.o.box[i].m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
-
-                Object.keys(this.o.layers).forEach(_.bind(function (key) {
-                    this.o.box[i].$box.find('[data-role="' + key + '"] input[type="checkbox"]').change({
-                        box: this.o.box[i],
-                        layers: this.o.layers[key]
-                    }, function (e) {
-                        var box = e.data.box,
-                            layers = e.data.layers;
-
-                        console.log(box, layers);
-                        _this.toggleLayer(box, key, layers, i18n[key]);
-                    });
-
-                }, this));
-            }
-
-            // sync maps
-            this.syncMaps(this.o.box);
-
-            // Global layers (Toggle conditions)
-            /*        Object.keys(this.o.layers).forEach(_.bind(function(key) {
-             this.$tool.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.box, layers: this.o.layers[key]}, function (e) {
-             var box = e.data.box,
-             layers = e.data.layers;
-
-             // TODO: make it workable with the checkbox seleciont (this.checked)
-             for (var i=0; i< box.length; i++) {
-             _this.toggleLayer(box[i], key, layers, i18n[key]);
-             }
-             });
-
-             }, this));*/
-
-            this.o.tool.init = true;
+            }, this));
         }
 
+        // sync maps
+        this.syncMaps(this.o.box);
+
+        // Global layers (Toggle conditions)
+/*        Object.keys(this.o.layers).forEach(_.bind(function(key) {
+            this.$tool.find('[data-role="'+ key +'"] input[type="checkbox"]').change({box: this.o.box, layers: this.o.layers[key]}, function (e) {
+                var box = e.data.box,
+                    layers = e.data.layers;
+
+                // TODO: make it workable with the checkbox seleciont (this.checked)
+                for (var i=0; i< box.length; i++) {
+                    _this.toggleLayer(box[i], key, layers, i18n[key]);
+                }
+            });
+
+        }, this));*/
     };
 
 
