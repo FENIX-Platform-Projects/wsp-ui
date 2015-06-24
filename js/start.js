@@ -49,6 +49,7 @@ define([
                     selectedLayer: null,
                     zscore: true,
                     anomalyLayerPrefix: 'eco_myd11c3_anomaly:lst_anomaly_6km_myd11c3',
+                    anomalyDPYLayerPrefix: 'eco_myd11c3_anomaly_dpy:lst_anomaly_dpy_6km_myd11c3',
                     zscoreLayerPrefix: 'eco_myd11c3_zscore:lst_zscore_6km_myd11c3',
                     averageLayerPrefix: {
                         workspace: 'eco_myd11c3_avg',
@@ -72,6 +73,7 @@ define([
                     cachedLayers: [],
                     zscore: true,
                     anomalyLayerPrefix: 'eco_et_anomaly:et_anomaly_6km_mod16a2',
+                    anomalyDPYLayerPrefix: 'eco_et_anomaly_dpy:et_anomaly_dpy_6km_mod16a2',
                     zscoreLayerPrefix: 'eco_et_zscore:et_zscore_6km_mod16a2',
                     averageLayerPrefix: {
                         workspace: 'eco_et_avg',
@@ -95,6 +97,7 @@ define([
                     cachedLayers: [],
                     zscore: true,
                     anomalyLayerPrefix: 'chirps_anomaly:rainfall_anomaly_6km_chirps',
+                    anomalyDPYLayerPrefix: 'chirps_anomaly:rainfall_anomaly_dpy_6km_chirps',
                     zscoreLayerPrefix: 'chirps_zscore:rainfall_zscore_6km_chirps',
                     averageLayerPrefix: {
                         workspace: 'chirps_avg',
@@ -117,6 +120,7 @@ define([
                     cachedLayers: [],
                     zscore: false,
                     anomalyLayerPrefix: 'eco_mod13a3_anomaly:ndvi_anomaly_1km_mod13a3',
+                    anomalyDPYLayerPrefix: 'eco_mod13a3_anomaly_dpy:ndvi_anomaly_dpy_1km_mod13a3',
                     averageLayerPrefix: {
                         workspace: 'eco_mod13a3_avg',
                         layerName: 'ndvi_average_1km_mod13a3'
@@ -163,10 +167,11 @@ define([
                 },
                 eco_region: {
                     workspace: 'fenix',
-                    layerName: 'gaul0_3857',
-                    cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
-                    style: 'eco_region_EN',
+                    layerName: 'gaul0_eco_3857',
+                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
+                    //style: 'eco_region_EN',
                     enabled: false,
+                    openlegend: false,
                     zindex:550
                 }
             },
@@ -319,6 +324,11 @@ define([
                 _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
             });
 
+            // anomaly dpy
+            this.o.box[i].$box.find('[data-role="anomaly_dpy"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                _this.toggleLayerDate(e.data.box, 'anomalyDPYLayer', e.data.box.anomalyDPYLayerPrefix, "Anomaly DPY");
+            });
+
             // zscore
             this.o.box[i].$box.find('[data-role="zscore"] input[type="checkbox"]').change( {box: this.o.box[i]}, function (e) {
                 _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
@@ -405,6 +415,10 @@ define([
 
             if (layer.zindex !== null && layer.zindex !== undefined) {
                 l.zindex = layer.zindex;
+            }
+
+            if (layer.openlegend !== null && layer.openlegend !== undefined) {
+                l.openlegend = layer.openlegend;
             }
 
             box[layerType] = new FM.layer(l);
@@ -545,12 +559,14 @@ define([
     };
 
     WSP.prototype.createCharts = function(lat, lon) {
+        var requestKey = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
+        this.o.requestKey = requestKey;
         for(var i=0; i < this.o.box.length; i++) {
-            this.createChart(this.o.box[i], lat, lon);
+            this.createChart(this.o.box[i], lat, lon, requestKey);
         }
     };
 
-    WSP.prototype.createChart = function(box, lat, lon) {
+    WSP.prototype.createChart = function(box, lat, lon, requestKey) {
         var cachedLayers = box.cachedLayers,
             $chart = box.$chart;
 
@@ -560,25 +576,25 @@ define([
         box.chartObj = null;
 
         // chart template
-        console.log(box.chart.chartObj);
         var c = $.extend(true, {}, HighchartsTemplate, this.o.chart_template, box.chart.chartObj);
-        console.log(c);
-
 
         var formula = (box.chart.formula)? box.chart.formula: null;
+        var _this = this;
         for(var year=2015; year >= 2007; year--) {
-            this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString(), formula).then(function(v) {
+            this.getChartData(this.getLayersByYear(cachedLayers, year), lat, lon, year.toString(), formula, requestKey).then(function(v) {
 
-                if (box.chartObj === null) {
-                    $chart.highcharts(c);
-                    box.chartObj = Highcharts.charts[Highcharts.charts.length-1];
-                }
+                if (requestKey === _this.o.requestKey) {
+                    if (box.chartObj === null) {
+                        $chart.highcharts(c);
+                        box.chartObj = Highcharts.charts[Highcharts.charts.length - 1];
+                    }
 
-                // check response
-                for(var i=0; i < v.data.length; i++) {
-                    if (v.data[i] != null) {
-                        box.chartObj.addSeries(v);
-                        break;
+                    // check response
+                    for (var i = 0; i < v.data.length; i++) {
+                        if (v.data[i] != null) {
+                            box.chartObj.addSeries(v);
+                            break;
+                        }
                     }
                 }
             });
@@ -595,21 +611,22 @@ define([
             l.dsd.layerName = l.dsd.layerName + "_" + month + "_3857";
             avgLayers.push(l);
         }
-        console.log(avgLayers);
-        this.getChartData(avgLayers, lat, lon, 'AVG', formula).then(function(v) {
-            for(var i=0; i < v.data.length; i++) {
-                if (v.data[i] != null) {
-                    v.dashStyle = 'longdash';
-                    v.dashStyle = 'shortdot';
-                    v.color = 'red';
-                    v.lineWidth = 4;
-                    v.states = {
-                        hover: {
-                            lineWidth: 4
-                        }
-                    };
-                    box.chartObj.addSeries(v);
-                    break;
+        this.getChartData(avgLayers, lat, lon, 'AVG', formula, requestKey).then(function(v) {
+            if (requestKey === _this.o.requestKey) {
+                for (var i = 0; i < v.data.length; i++) {
+                    if (v.data[i] != null) {
+                        v.dashStyle = 'longdash';
+                        v.dashStyle = 'shortdot';
+                        v.color = 'red';
+                        v.lineWidth = 4;
+                        v.states = {
+                            hover: {
+                                lineWidth: 4
+                            }
+                        };
+                        box.chartObj.addSeries(v);
+                        break;
+                    }
                 }
             }
         });
@@ -658,7 +675,7 @@ define([
         return deferred.promise;
     };
 
-    WSP.prototype.getChartData = function(layers, lat, lon, serieName, formula) {
+    WSP.prototype.getChartData = function(layers, lat, lon, serieName, formula, requestKey) {
         var deferred = Q.defer();
 
         var data = $.extend(true, {}, this.o.pixel_query);
@@ -681,37 +698,49 @@ define([
 
 
         var _this = this;
-        $.ajax({
-            type: 'POST',
-            url: Services.url_geostatistics_rasters_pixel,
-            contentType: "application/json",
-            dataType: 'json',
-            data: JSON.stringify(data),
-            crossDomain: true,
-            success : function(response) {
-                var d = {
-                    name: serieName,
-                    data: []
-                   // data: response
-                }
-                if (formula !== null && formula !== undefined) {
-                    for(var i=0; i < response.length; i++) {
-                        var v = response[i]
-                        if (response[i] !== null && response[i] !== undefined) {
-                            d.data.push(_this.mathEval(formula.replace('{{x}}', response[i])));
-                        }
-                        else{
-                            d.data.push(response[i]);
-                        }
+        //console.log(requestKey, this.o.requestKey);
+        if (requestKey === this.o.requestKey) {
+            $.ajax({
+                type: 'POST',
+                url: Services.url_geostatistics_rasters_pixel,
+                contentType: "application/json",
+                dataType: 'json',
+                data: JSON.stringify(data),
+                crossDomain: true,
+                success: function (response) {
+                    var d = {
+                        name: serieName,
+                        data: []
+                        // data: response
                     }
-                }else{
-                    d.data = response;
-                }
+                    if (formula !== null && formula !== undefined) {
+                        for (var i = 0; i < response.length; i++) {
+                            var v = response[i]
+                            if (response[i] !== null && response[i] !== undefined) {
+                                d.data.push(_this.mathEval(formula.replace('{{x}}', response[i])));
+                            }
+                            else {
+                                d.data.push(response[i]);
+                            }
+                        }
+                    } else {
+                        d.data = response;
+                    }
 
-                deferred.resolve(d);
-            },
-            error : function(err, b, c) {}
-        });
+                    deferred.resolve(d);
+                },
+                error: function (err, b, c) {
+                }
+            });
+        }
+        else{
+             //TODO: is not right the resolve here
+            deferred.resolve({
+                name: serieName,
+                data: []
+                // data: response
+            })
+        }
 
         return deferred.promise;
     };
@@ -760,15 +789,24 @@ define([
         m.createMap();
 
         m.addLayer(new FM.layer({
-            layers: 'fenix:gaul0_line_3857',
-            layertitle: i18n.country_coundaries,
-            urlWMS: Services.url_geoserver_wms,
-            opacity: '0.9',
+            layers: 'fenix:uncs_lakes_3857',
+            layertitle: '',
+            urlWMS: Services.url_geoserver_wms_demo,
+            opacity: '1',
             zindex: '500',
             lang: 'en',
             hideLayerInControllerList: true
         }));
 
+        m.addLayer(new FM.layer({
+            layers: 'fenix:gaul0_line_3857',
+            layertitle: i18n.country_coundaries,
+            urlWMS: Services.url_geoserver_wms,
+            opacity: '0.9',
+            zindex: '501',
+            lang: 'en',
+            hideLayerInControllerList: true
+        }));
 
         // On Move
         var _m = m;
