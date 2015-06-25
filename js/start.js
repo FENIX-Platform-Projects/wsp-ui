@@ -346,7 +346,7 @@ define([
             // Global layers (Toggle conditions)
             Object.keys(this.o.layers).forEach(_.bind(function (key) {
                 var _this = this;
-                this.$landing.find('[data-role="' + key + '"] input[type="checkbox"]').change({
+                this.$landing.find('[data-role="' + key + '"]').on('click', {
                     box: this.o.landing,
                     layers: this.o.layers[key]
                 }, function (e) {
