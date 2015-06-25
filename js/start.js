@@ -392,27 +392,30 @@ define([
                 }, {box: this.o.box[i]});
 
                 // anomaly
-                this.o.box[i].$box.find('[data-role="anomaly"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                this.o.box[i].$box.find('[data-role="anomaly"]').on('click', {box: this.o.box[i]}, function (e) {
                     _this.toggleLayerDate(e.data.box, 'anomalyLayer', e.data.box.anomalyLayerPrefix, "Anomaly");
                 });
 
                 // anomaly dpy
-                this.o.box[i].$box.find('[data-role="anomaly_dpy"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                this.o.box[i].$box.find('[data-role="anomaly_dpy"]').on('click', {box: this.o.box[i]}, function (e) {
                     _this.toggleLayerDate(e.data.box, 'anomalyDPYLayer', e.data.box.anomalyDPYLayerPrefix, "Anomaly DPY");
                 });
 
                 // zscore
-                this.o.box[i].$box.find('[data-role="zscore"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                this.o.box[i].$box.find('[data-role="zscore"]').on('click', {box: this.o.box[i]}, function (e) {
                     _this.toggleLayerDate(e.data.box, 'zscoreLayer', e.data.box.zscoreLayerPrefix, "Z-Score");
                 });
 
                 // zonalstats_gaul1
                 this.o.box[i].$zonalStatsTable = this.o.box[i].$box.find('[data-role="zonalstats_gaul1_table"]');
-                this.o.box[i].$box.find('[data-role="zonalstats_gaul1"] input[type="checkbox"]').change({box: this.o.box[i]}, function (e) {
+                this.o.box[i].$box.find('[data-role="zonalstats_gaul1"]').on('click', {box: this.o.box[i]}, function (e) {
+
                     var box = e.data.box,
                         $zonalStatsTable = box.$zonalStatsTable;
 
-                    if ( this.checked) {
+                    if ( box.zonalStatVisible == false || box.zonalStatVisible === undefined) {
+
+                        box.zonalStatVisible = true;
 
                         $zonalStatsTable.html('<div style="height:400px;"><i class="fa fa-spinner fa-spin fa-2x"></i><span> Loading ZonalStats</span></div>');
 
@@ -423,7 +426,7 @@ define([
 
                             var div = '';
                             div += '<h3>'+ i18n.zonalStatisticsTitle +'</h3>';
-                            div += '<table class="table table-striped table-condensed">';
+                            div += '<table class="table table-striped table-hover">';
                             div += '<thead><tr>';
                             for (var i = 0; i < headers.length; i++) {
                                 div += "<th>" + i18n[headers[i]] + "</th>";
@@ -448,6 +451,7 @@ define([
                     }
 
                     else {
+                        box.zonalStatVisible = false;
                         // hide table
                         $zonalStatsTable.empty();
                     }
@@ -457,7 +461,7 @@ define([
                 this.o.box[i].m.zoomTo("country", "iso3", ["AFG", "AZE", "IRN", "KAZ", "KGZ", "PAK", "TJK", "TUR", "TKM", "UZB"]);
 
                 Object.keys(this.o.layers).forEach(_.bind(function (key) {
-                    this.o.box[i].$box.find('[data-role="' + key + '"] input[type="checkbox"]').change({
+                    this.o.box[i].$box.find('[data-role="' + key + '"]').on('click', {
                         box: this.o.box[i],
                         layers: this.o.layers[key]
                     }, function (e) {
