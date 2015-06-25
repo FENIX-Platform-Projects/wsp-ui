@@ -21,7 +21,7 @@ define({
         selectable_layers: 'Layers',
         eco_region: 'ECO Region',
         gaul1: 'Administrative Unit Level1 (AFG)',
-        hotspot: 'Drought HotSpot (AFG)',
+        hotspot: 'HotSpot (AFG) > -30%',
         wheat_area: 'Wheat Area (AFG)',
         zonalstats_gaul1: 'Zonalstats GAUL1 (AFG)',
         province: 'Province',

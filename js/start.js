@@ -155,26 +155,31 @@ define([
                 population_landscan: {
                     workspace: 'wsp',
                     layerName: 'population_1km_landscan_2012_3857',
+                    openlegend: true,
                     enabled: false
                 },
                 cultivated_land_gaez_2010: {
                     workspace: 'wsp',
                     layerName: 'cultivated_land_10km_gaez_2010_3857',
+                    openlegend: true,
                     enabled: false
                 },
                 irrigated_areas_solaw_2012: {
                     workspace: 'wsp',
                     layerName: 'irrigated_areas_10km_solaw_2012_3857',
+                    openlegend: true,
                     enabled: false
                 },
                 rainfed_land_gaez: {
                     workspace: 'wsp',
                     layerName: 'rainfed_land_10km_gaez_2010_3857',
+                    openlegend: true,
                     enabled: false
                 },
                 wheat: {
                     workspace: 'earthstat',
                     layerName: 'wheat_area_3857',
+                    openlegend: true,
                     //style: 'Wheat_SAGE_harvested_area',
                     enabled: false
                 },
@@ -207,7 +212,7 @@ define([
                     workspace: 'eco',
                     layerName: 'wheat_area_afg_3857',
                     enabled: false,
-                    openlegend: false
+                    openlegend: true
                 }
             },
 
