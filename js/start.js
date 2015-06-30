@@ -123,13 +123,14 @@ define([
                     title: i18n.ndvi_label,
                     coverageSectorCode: 'mod13a3',
                     cachedLayers: [],
-                    addZscore: false,
+                    addZscore: true,
                     addHotspot: true,
                     addWheatAreaAFG: true,
                     addGaul1: true,
                     addZonalStats: true,
                     anomalyLayerPrefix: 'eco_mod13a3_anomaly:ndvi_anomaly_1km_mod13a3',
                     anomalyDPYLayerPrefix: 'eco_mod13a3_anomaly_dpy:ndvi_anomaly_dpy_1km_mod13a3',
+                    zscoreLayerPrefix: 'eco_mod13a3_zscore:ndvi_zscore_1km_mod13a3',
                     averageLayerPrefix: {
                         workspace: 'eco_mod13a3_avg',
                         layerName: 'ndvi_average_1km_mod13a3'
@@ -186,11 +187,9 @@ define([
                 eco_region: {
                     workspace: 'fenix',
                     layerName: 'gaul0_eco_3857',
-                    //cql_filter: "adm0_code IN (1.00000, 19.00000, 132.00000, 117.00000, 138.00000, 188.00000, 239.00000, 249.00000,  250.00000, 261.00000)",
-                    //style: 'eco_region_EN',
                     enabled: false,
                     openlegend: false,
-                    zindex:550
+                    zindex:400
                 },
                 gaul1: {
                     workspace: 'fenix',
@@ -213,7 +212,8 @@ define([
                     layerName: 'wheat_area_afg_3857',
                     enabled: false,
                     openlegend: true
-                }
+                },
+
             },
 
             // query raster timeserie
@@ -587,6 +587,8 @@ define([
             url: url,
             contentType: "application/json",
             dataType: 'json',
+            headers: Services.url_d3s_resources_find_headers,
+            //headers: { "full": true,  "dsd": true },
             data: JSON.stringify(request_filter),
             crossDomain: true,
             success : function(response) {
