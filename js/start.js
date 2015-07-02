@@ -587,8 +587,7 @@ define([
             url: url,
             contentType: "application/json",
             dataType: 'json',
-            headers: Services.url_d3s_resources_find_headers,
-            //headers: { "full": true,  "dsd": true },
+            //headers: Services.url_d3s_resources_find_headers,
             data: JSON.stringify(request_filter),
             crossDomain: true,
             success : function(response) {
